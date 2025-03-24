@@ -1,10 +1,15 @@
 package com.example.doancoso.presentation.ui
 
+import HomeScreen
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.doancoso.data.repository.AuthService
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+
+//import com.google.android.play.core.integrity.au
 
 sealed class Screen(val route: String) {
     data object Login : Screen("login")
@@ -13,13 +18,13 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun AppNavigation(navController: NavHostController = rememberNavController()) {
+fun AppNavigation(navController: NavHostController = rememberNavController(), authService: AuthService, googleSignInClient: GoogleSignInClient, signIn: () -> Unit) {
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
-            LoginScreen(navController)
+            LoginScreen(navController,authService ,signIn = signIn)
         }
         composable(Screen.Signup.route) {
-            SignupScreen(navController)
+            SignupScreen(navController,authService)
         }
         composable(Screen.Home.route) {
             HomeScreen(navController)

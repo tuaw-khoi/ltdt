@@ -42,7 +42,7 @@ android {
 }
 
 dependencies {
-
+    implementation("com.google.firebase:firebase-bom:32.3.0")
 //    implementation("com.google.firebase:firebase-bom:32.3.0")
 
 
@@ -56,9 +56,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.database)
+    implementation ("com.google.firebase:firebase-auth-ktx:22.1.2")
+    implementation ("com.google.firebase:firebase-database-ktx:20.3.0")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
