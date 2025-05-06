@@ -43,24 +43,28 @@ android {
 
 dependencies {
     implementation("com.google.firebase:firebase-bom:32.3.0")
-//    implementation("com.google.firebase:firebase-bom:32.3.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.6.8")
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
 
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation ("com.google.firebase:firebase-auth-ktx:22.1.2")
+    implementation ("com.google.firebase:firebase-database-ktx:20.3.0")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation ("com.google.firebase:firebase-auth-ktx:22.1.2")
-    implementation ("com.google.firebase:firebase-database-ktx:20.3.0")
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.animation.core.lint)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
