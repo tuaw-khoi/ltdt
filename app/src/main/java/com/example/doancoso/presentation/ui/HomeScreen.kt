@@ -1,194 +1,281 @@
+package com.example.doancoso.presentation.ui
+
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.example.doancoso.presentation.ui.AuthViewModel
+import com.example.doancoso.data.repository.AuthService
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(navController: NavHostController) {
-    val viewModel: AuthViewModel = viewModel()
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Chi tiêu", color = Color.White)
-                        Text("Thu nhập", color = Color.White)
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    titleContentColor = Color.White
-                ),
-                actions = {
-                    Text("0", color = Color.White, modifier = Modifier.padding(end = 16.dp))
-                    Text("2M", color = Color.White)
-                }
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { /* Thêm giao dịch */ },
-                containerColor = Color(0xFF4CAF50) // Màu xanh lá như trong ảnh
-            ) {
-                Text("+", fontSize = 24.sp, color = Color.White)
-            }
-        },
-        bottomBar = { BottomNavigationBar(navController) }
-    ) { paddingValues ->
+fun HomeScreen(navController: NavHostController, authService: AuthService) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF80DEEA), // Soft teal
+                            Color(0xFFFFCCBC)  // Light coral
+                        )
+                    )
+                )
+                .padding(16.dp)
+                .padding(bottom = 56.dp) // chừa chỗ cho BottomNavBar
         ) {
-            // Thống kê chi tiêu
+            Text(
+                text = "Biểu đồ thu chi",
+                color = Color.Black,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
-                shape = RoundedCornerShape(16.dp)
+                    .height(300.dp)
+                    .padding(bottom = 16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Thống kê", style = MaterialTheme.typography.titleMedium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ExpenseStatItem("Chi tiêu không hóa đơn", "66%")
-                    ExpenseStatItem("Bà già dùng", "27%")
-                    ExpenseStatItem("An ủyng", "7%")
-                }
+                PieChartComposable()
             }
 
-            // Danh sách giao dịch
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                shape = RoundedCornerShape(16.dp)
+                    .padding(bottom = 16.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50).copy(alpha = 0.9f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
-                LazyColumn(modifier = Modifier.padding(16.dp)) {
-                    items(getSampleTransactions()) { transaction ->
-                        TransactionItem(transaction.date, transaction.amount)
-                        Divider(modifier = Modifier.padding(vertical = 4.dp))
-                    }
-                }
-            }
-
-            // Nút hành động
-            Column(
-                modifier = Modifier
-                    .padding(bottom = 16.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                OutlinedButton(
-                    onClick = { /* Xử lý kế hoạch ngân */ },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Kê hoạch ngân", modifier = Modifier.padding(8.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = "Balance Icon",
+                            tint = Color.White,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Tổng tiền còn lại",
+                            color = Color.White,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "0 VNĐ",
+                        color = Color.White,
+                        fontSize = 36.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            Text(
+                text = "Danh mục thu chi",
+                color = Color.Black,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+
+            ExpenseCategory("Tiền điện", "150.000 VNĐ", Color(0xFFBB86FC))
+            ExpenseCategory("Tiền học", "550.000 VNĐ", Color(0xFF03DAC5))
+            ExpenseCategory("Tiền đi chợ", "500.000 VNĐ", Color(0xFFFFC107))
+        }
+
+        // Bottom Navigation ở dưới cùng
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter
+        ) {
+            BottomNavBar(navController)
+        }
+    }
+}
+
+@Composable
+fun PieChartComposable() {
+    val entries = listOf(
+        PieEntry(150000f, "Tiền điện"),
+        PieEntry(550000f, "Tiền học"),
+        PieEntry(500000f, "Tiền đi chợ")
+    )
+
+    val colors = listOf(
+        Color(0xFFBB86FC),
+        Color(0xFF03DAC5),
+        Color(0xFFFFC107)
+    )
+
+    val total = entries.sumOf { it.value.toDouble() }.toFloat()
+    val sweepAngles = entries.map { entry ->
+        (entry.value / total) * 360f
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .clip(RoundedCornerShape(16.dp))
+        ) {
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                var startAngle = -90f
+                val centerX = size.width / 2
+                val centerY = size.height / 2
+                val radius = size.width / 2 * 0.8f
+                val holeRadius = radius * 0.3f
+
+                sweepAngles.forEachIndexed { index, sweepAngle ->
+                    val color = colors[index % colors.size]
+                    drawArc(
+                        color = color,
+                        startAngle = startAngle,
+                        sweepAngle = sweepAngle,
+                        useCenter = true,
+                        topLeft = Offset(centerX - radius, centerY - radius),
+                        size = Size(radius * 2, radius * 2)
+                    )
+                    startAngle += sweepAngle
+                }
+
+                drawCircle(
+                    color = Color.White,
+                    radius = holeRadius,
+                    center = Offset(centerX, centerY)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            entries.forEachIndexed { index, entry ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                ) {
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
                 }
             }
         }
     }
 }
 
-@Composable
-fun ExpenseStatItem(title: String, percentage: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = title, style = MaterialTheme.typography.bodyMedium)
-        Text(text = percentage, style = MaterialTheme.typography.bodyMedium)
-    }
-}
+data class PieEntry(val value: Float, val label: String)
 
 @Composable
-fun TransactionItem(date: String, amount: String) {
+fun ExpenseCategory(name: String, amount: String, color: Color) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = date, style = MaterialTheme.typography.bodySmall)
-        Text(text = amount, style = MaterialTheme.typography.bodyMedium)
-    }
-}
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.weight(1f)
+        ) {
 
-data class Transaction(val date: String, val amount: String)
+            Spacer(modifier = Modifier.width(8.dp))
 
-fun getSampleTransactions(): List<Transaction> {
-    return listOf(
-        Transaction("Household appliances, 02/03/2023", "400,000.00 VNĐ"),
-        Transaction("Food, 02/03/2023", "85,000.00 VNĐ"),
-        Transaction("Food, 01/03/2023", "24,000.00 VNĐ")
-    )
-}
+        }
 
-@Composable
-fun BottomNavigationBar(navController: NavHostController) {
-    NavigationBar {
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = "Tổng quan") },
-            label = { Text("Tổng quan") },
-            selected = true, // Tạm thời chọn mặc định
-            onClick = { navController.navigate("home") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.List, contentDescription = "Sổ giao dịch") },
-            label = { Text("Sổ giao dich") },
-            selected = false,
-            onClick = { navController.navigate("transactions") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.DateRange, contentDescription = "Lập kế hoạch") },
-            label = { Text("Lập kế hoạch") },
-            selected = false,
-            onClick = { navController.navigate("plans") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Tài khoản") },
-            label = { Text("Tài khoản") },
-            selected = false,
-            onClick = { navController.navigate("account") }
-        )
     }
 }
 
 @Composable
-fun AppNavigation(navController: NavHostController) {
-    NavHost(navController, startDestination = "home") {
-        composable("home") { HomeScreen(navController) }
-        // Thêm các màn hình khác khi cần
-        composable("transactions") { Text("Transactions Screen") }
-        composable("plans") { Text("Plans Screen") }
-        composable("account") { Text("Account Screen") }
+fun BottomNavBar(navController: NavHostController) {
+    NavigationBar(containerColor = Color(0xFF00796B)) {
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Home",
+                    tint = Color.White
+                )
+            },
+            selected = true,
+            onClick = {
+                navController.navigate(Screen.Home.route) // optional: quay về Home
+            }
+        )
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Chat,
+                    contentDescription = "Chat",
+                    tint = Color.White
+                )
+            },
+            selected = false,
+            onClick = {
+                // Tùy ý: thêm chức năng nếu muốn
+            }
+        )
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Add",
+                    tint = Color.Yellow
+                )
+            },
+            selected = false,
+            onClick = {
+                navController.navigate(Screen.AddItems.route)
+            }
+        )
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profile",
+                    tint = Color.White
+                )
+            },
+            selected = false,
+            onClick = {
+                // Tùy ý: thêm chức năng nếu muốn
+            }
+        )
     }
 }

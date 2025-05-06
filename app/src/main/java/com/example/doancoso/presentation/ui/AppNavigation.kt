@@ -1,6 +1,7 @@
 package com.example.doancoso.presentation.ui
 
-import HomeScreen
+import com.example.doancoso.data.repository.ExpenseItemService
+
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -15,19 +16,29 @@ sealed class Screen(val route: String) {
     data object Login : Screen("login")
     data object Signup : Screen("signup")
     data object Home : Screen("home")
+    data object AddItems : Screen("addItems")
 }
 
 @Composable
-fun AppNavigation(navController: NavHostController = rememberNavController(), authService: AuthService, googleSignInClient: GoogleSignInClient, signIn: () -> Unit) {
+fun AppNavigation(
+    expenseItemService: ExpenseItemService,
+    navController: NavHostController = rememberNavController(),
+    authService: AuthService,
+    googleSignInClient: GoogleSignInClient,
+    signIn: () -> Unit
+) {
     NavHost(navController = navController, startDestination = Screen.Login.route) {
         composable(Screen.Login.route) {
-            LoginScreen(navController,authService ,signIn = signIn)
+            LoginScreen(navController, authService, signIn = signIn)
         }
         composable(Screen.Signup.route) {
-            SignupScreen(navController,authService)
+            SignupScreen(navController, authService)
         }
         composable(Screen.Home.route) {
-            HomeScreen(navController)
+            HomeScreen(navController, authService)
+        }
+        composable(Screen.AddItems.route) {
+            AddItemsScreen(navController, authService, expenseItemService)
         }
     }
 }
