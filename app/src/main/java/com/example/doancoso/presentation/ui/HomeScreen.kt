@@ -47,7 +47,7 @@ fun HomeScreen(
     authService: AuthService,
     expenseItemService: ExpenseItemService = remember { ExpenseItemService() }
 ) {
-    val selectedType = remember { mutableStateOf("chi") }
+    val selectedType = remember { mutableStateOf("Thu nhập") }
     val selectedTimeFrame = remember { mutableStateOf("day") }
     val chartData = remember { mutableStateListOf<ResultGetExpense>() }
     val recentTransactions = remember { mutableStateListOf<ExpenseItem>() }
@@ -114,7 +114,7 @@ fun HomeScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             var expanded by remember { mutableStateOf(false) }
-            val types = listOf("chi", "thu")
+            val types = listOf("Thu nhập", "Chi phí")
             Box(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
                 ExposedDropdownMenuBox(
                     expanded = expanded,
