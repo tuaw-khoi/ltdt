@@ -68,38 +68,52 @@ open class AuthService {
             }
     }
 
-    fun loginUser(email: String, password: String, onComplete: (Boolean, String?, User?) -> Unit) {
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val uid = auth.currentUser?.uid
-                    if (uid == null) {
-                        onComplete(false, "Không có UID", null)
-                        return@addOnCompleteListener
-                    }
-                    fetchUser(uid) { user ->
-                        if (user != null) {
-                            onComplete(true, null, user)
-                        } else {
-                            onComplete(false, "Không tìm thấy người dùng", null)
-                        }
-                    }
-                } else {
-                    onComplete(false, task.exception?.message, null)
-                }
+//    fun loginUser(email: String, password: String, onComplete: (Boolean, String?, User?) -> Unit) {
+//        auth.signInWithEmailAndPassword(email, password)
+//            .addOnCompleteListener { task ->
+//                if (task.isSuccessful) {
+//                    val uid = auth.currentUser?.uid
+//                    if (uid == null) {
+//                        onComplete(false, "Không có UID", null)
+//                        return@addOnCompleteListener
+//                    }
+//                    fetchUser(uid) { user ->
+//                        if (user != null) {
+//                            onComplete(true, null, user)
+//                        } else {
+//                            onComplete(false, "Không tìm thấy người dùng", null)
+//                        }
+//                    }
+//                } else {
+//                    onComplete(false, task.exception?.message, null)
+//                }
+//            }
+//    }
+
+    suspend fun fetchUser(uid: String): User? {
+        return try {
+            val snapshot = database.child(uid).get().await() // await() là một phần của Coroutine
+            if (snapshot.exists()) {
+                snapshot.getValue(User::class.java) // Chuyển dữ liệu thành đối tượng User
+            } else {
+                null
             }
+        } catch (e: Exception) {
+            null
+        }
     }
 
-    private fun fetchUser(uid: String, onComplete: (User?) -> Unit) {
-        database.child(uid).get()
-            .addOnSuccessListener { snapshot ->
-                val user = snapshot.getValue(User::class.java)
-                onComplete(user)
-            }
-            .addOnFailureListener {
-                onComplete(null)
-            }
+
+    suspend fun updateUser(uid: String, name: String, email: String, phone: String, gender: String, address: String): Boolean {
+        return try {
+            val user = User(uid, name, email, phone, gender, address)
+            database.child(uid).setValue(user).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
+
 
     fun logout() {
         auth.signOut()

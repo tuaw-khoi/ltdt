@@ -45,6 +45,7 @@ dependencies {
     implementation("com.google.firebase:firebase-bom:32.3.0")
     implementation ("androidx.compose.material:material-icons-extended:1.6.8")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("io.coil-kt:coil-compose:2.2.2")
 
 
     implementation(libs.androidx.core.ktx)
