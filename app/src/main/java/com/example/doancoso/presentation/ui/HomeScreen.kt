@@ -28,45 +28,49 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.example.doancoso.R
+import com.example.doancoso.data.models.ExpenseItem
 import com.example.doancoso.data.models.ResultGetExpense
 import com.example.doancoso.data.repository.AuthService
 import com.example.doancoso.data.repository.ExpenseItemService
 import kotlinx.coroutines.launch
-import java.util.Random
+import java.util.*
 
 fun generateColorForCategory(category: String): Color {
     val random = Random(category.hashCode().toLong())
     return Color(random.nextInt(256), random.nextInt(256), random.nextInt(256), 255)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavHostController,
     authService: AuthService,
     expenseItemService: ExpenseItemService = remember { ExpenseItemService() }
 ) {
-    val incomeData = remember { mutableStateListOf<ResultGetExpense>() }
-    val expenseData = remember { mutableStateListOf<ResultGetExpense>() }
-    val totalIncome = remember { mutableStateOf(0.0) }
-    val totalExpense = remember { mutableStateOf(0.0) }
+    val selectedType = remember { mutableStateOf("chi") }
+    val selectedTimeFrame = remember { mutableStateOf("day") }
+    val chartData = remember { mutableStateListOf<ResultGetExpense>() }
+    val recentTransactions = remember { mutableStateListOf<ExpenseItem>() }
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
+    fun loadData() {
         coroutineScope.launch {
-            val incomes = expenseItemService.getExpensesByType("thu")
-            incomeData.clear()
-            incomeData.addAll(incomes)
-            totalIncome.value = incomes.firstOrNull()?.total ?: 0.0
-
-            val expenses = expenseItemService.getExpensesByType("chi")
-            expenseData.clear()
-            expenseData.addAll(expenses)
-            totalExpense.value = expenses.firstOrNull()?.total ?: 0.0
+            val grouped = expenseItemService.getGroupedExpensesBy(selectedType.value, selectedTimeFrame.value)
+            val all = expenseItemService.getAllExpenses()
+                .filter { it.type == selectedType.value }
+                .sortedByDescending { it.timestamp }
+            chartData.clear()
+            chartData.addAll(grouped)
+            recentTransactions.clear()
+            recentTransactions.addAll(all)
         }
     }
 
+    LaunchedEffect(Unit) {
+        loadData()
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
-        // Background image
         Image(
             painter = painterResource(id = R.drawable.home),
             contentDescription = null,
@@ -74,14 +78,12 @@ fun HomeScreen(
             contentScale = ContentScale.Crop
         )
 
-        // White transparent overlay
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White.copy(alpha = 0.3f))
         )
 
-        // Scrollable content
         val scrollState = rememberScrollState()
 
         Column(
@@ -92,103 +94,162 @@ fun HomeScreen(
                 .padding(bottom = 72.dp)
         ) {
             Text(
-                text = "📊 Tổng quan thu chi",
-                fontSize = 26.sp,
-                fontWeight = FontWeight.ExtraBold,
+                text = "📊 Thống kê tài chính",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
                 color = Color(0xFF004D40),
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Card(
-                    modifier = Modifier.weight(1f).height(200.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(Color.White.copy(alpha = 0.95f)),
-                    elevation = CardDefaults.cardElevation(4.dp)
-                ) {
-                    PieChartComposable(incomeData, title = "Thu")
+            SegmentedButton(
+                options = listOf("day", "week", "month"),
+                labels = listOf("Ngày", "Tuần", "Tháng"),
+                selected = selectedTimeFrame.value,
+                onSelect = {
+                    selectedTimeFrame.value = it
+                    loadData()
                 }
+            )
 
-                Card(
-                    modifier = Modifier.weight(1f).height(200.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(Color.White.copy(alpha = 0.95f)),
-                    elevation = CardDefaults.cardElevation(4.dp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            var expanded by remember { mutableStateOf(false) }
+            val types = listOf("chi", "thu")
+            Box(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
                 ) {
-                    PieChartComposable(expenseData, title = "Chi")
+                    TextField(
+                        value = selectedType.value,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Loại giao dịch") },
+                        trailingIcon = {
+                            ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+                        },
+                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        types.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type.uppercase()) },
+                                onClick = {
+                                    selectedType.value = type
+                                    expanded = false
+                                    loadData()
+                                }
+                            )
+                        }
+                    }
                 }
+            }
+
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(340.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(Color.White.copy(alpha = 0.95f)),
+                elevation = CardDefaults.cardElevation(6.dp)
+            ) {
+                PieChartComposable(chartData, title = "${selectedType.value.uppercase()} - ${selectedTimeFrame.value}")
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Lịch sử giao dịch
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Card(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(Color(0xFFB2DFDB)),
-                    elevation = CardDefaults.cardElevation(2.dp)
-                ) {
-                    TotalBalanceCard("Tổng thu", totalIncome.value)
-                }
-
-                Card(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(20.dp),
-                    colors = CardDefaults.cardColors(Color(0xFFFFCDD2)),
-                    elevation = CardDefaults.cardElevation(2.dp)
-                ) {
-                    TotalBalanceCard("Tổng chi", totalExpense.value)
+                Text(
+                    text = "🕓 Lịch sử giao dịch",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = Color(0xFF004D40)
+                )
+                TextButton(onClick = { navController.navigate("history") }) {
+                    Text("Xem thêm", color = Color(0xFF00796B))
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Text(
-                text = "💰 Chi tiết giao dịch",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF37474F),
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
-
-            Text("Các khoản thu", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 4.dp))
-            incomeData.forEach {
-                ExpenseCategory(it.category, "+${it.amount.toInt()} VNĐ", generateColorForCategory(it.category))
+            recentTransactions.take(2).forEach { tx ->
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp), // Tăng padding giữa các thẻ
+                    colors = CardDefaults.cardColors(
+                        if (tx.type == "thu") Color(0xFFDFF0D8) else Color(0xFFFFEBEE)
+                    ),
+                    shape = RoundedCornerShape(16.dp) // Thêm bo góc mềm mại
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp), // Thêm padding vào bên trong Row
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f) // Đảm bảo text có không gian
+                        ) {
+                            Text(
+                                text = tx.category,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp, // Cỡ chữ lớn hơn
+                                color = Color.Black
+                            )
+                            Text(
+                                text = tx.note ?: "Không có ghi chú", // Hiển thị ghi chú nếu có
+                                fontSize = 14.sp,
+                                color = Color.Gray // Màu ghi chú xám nhạt
+                            )
+                        }
+                        Text(
+                            text = "${tx.amount.toInt()} VNĐ",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp, // Cỡ chữ số tiền lớn hơn
+                            color = if (tx.type == "thu") Color(0xFF388E3C) else Color(0xFFC62828) // Màu cho Thu và Chi
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
 
-            Text("Các khoản chi", fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(vertical = 4.dp))
-            expenseData.forEach {
-                ExpenseCategory(it.category, "-${it.amount.toInt()} VNĐ", generateColorForCategory(it.category))
-            }
         }
 
-        // Bottom Navigation Bar
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
-        ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
             BottomNavBar(navController)
         }
     }
 }
 
 @Composable
-fun TotalBalanceCard(title: String, amount: Double) {
-    Column(
-        modifier = Modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(title, fontSize = 18.sp, color = Color(0xFF004D40), fontWeight = FontWeight.Medium)
-        Spacer(modifier = Modifier.height(8.dp))
-        Text("${amount.toInt()} VNĐ", fontSize = 24.sp, fontWeight = FontWeight.Bold)
+fun SegmentedButton(options: List<String>, selected: String, onSelect: (String) -> Unit, labels: List<String> = options) {
+    Row {
+        options.forEachIndexed { index, option ->
+            val isSelected = option == selected
+            Button(
+                onClick = { onSelect(option) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isSelected) Color(0xFF00796B) else Color.White,
+                    contentColor = if (isSelected) Color.White else Color.DarkGray
+                ),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier
+                    .padding(horizontal = 4.dp)
+                    .height(36.dp)
+            ) {
+                Text(labels[index].uppercase())
+            }
+        }
     }
 }
 
@@ -205,11 +266,9 @@ fun PieChartComposable(expenseData: List<ResultGetExpense>, title: String = "") 
             .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (title.isNotEmpty()) {
-            Text("Biểu đồ $title", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
-        }
+        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
 
-        Box(modifier = Modifier.size(140.dp)) {
+        Box(modifier = Modifier.size(200.dp)) {
             Canvas(modifier = Modifier.fillMaxSize()) {
                 var startAngle = -90f
                 val centerX = size.width / 2
@@ -255,25 +314,6 @@ fun PieChartComposable(expenseData: List<ResultGetExpense>, title: String = "") 
 data class PieEntry(val value: Float, val label: String, val color: Color)
 
 @Composable
-fun ExpenseCategory(name: String, amount: String, color: Color) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(Color.White),
-        elevation = CardDefaults.cardElevation(1.dp)
-    ) {
-        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(modifier = Modifier.size(12.dp).background(color, RoundedCornerShape(2.dp)))
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(name, modifier = Modifier.weight(1f), fontWeight = FontWeight.SemiBold)
-            Text(amount, color = Color.DarkGray)
-        }
-    }
-}
-
-@Composable
 fun BottomNavBar(navController: NavHostController) {
     NavigationBar(
         containerColor = Color.White,
@@ -283,22 +323,22 @@ fun BottomNavBar(navController: NavHostController) {
         NavigationBarItem(
             icon = { Icon(Icons.Default.Home, contentDescription = "Home", tint = Color(0xFF00796B)) },
             selected = true,
-            onClick = { navController.navigate(Screen.Home.route) }
+            onClick = { navController.navigate("home") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Chat, contentDescription = "Chat", tint = Color(0xFF00796B)) },
             selected = false,
-            onClick = { navController.navigate(Screen.Wallet.route) }
+            onClick = { navController.navigate("wallet") }
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Add, contentDescription = "Add", tint = Color(0xFFFFA000)) },
+            icon = { Icon(Icons.Default.Add, contentDescription = "addItems", tint = Color(0xFFFFA000)) },
             selected = false,
-            onClick = { navController.navigate(Screen.AddItems.route) }
+            onClick = { navController.navigate("addItems") }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color(0xFF00796B)) },
             selected = false,
-            onClick = { /* Mở Profile nếu cần */ }
+            onClick = { navController.navigate("profile") }
         )
     }
 }
