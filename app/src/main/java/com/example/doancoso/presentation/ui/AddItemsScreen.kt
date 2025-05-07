@@ -1,20 +1,8 @@
 package com.example.doancoso.presentation.ui
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-//import androidx.compose.material.icons.automirrored.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Create
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Money
-import androidx.compose.material.icons.filled.People
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,28 +10,28 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material3.Icon
-import androidx.compose.material3.SwitchDefaults
 import androidx.navigation.NavHostController
 import com.example.doancoso.data.models.ExpenseItem
 import com.example.doancoso.data.repository.AuthService
 import com.example.doancoso.data.repository.ExpenseItemService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
 fun AddItemsScreen(
     navController: NavHostController,
-    authService: AuthService,
+    authService: AuthService, // Bạn có thể không cần AuthService trực tiếp ở đây nữa
     expenseItemService: ExpenseItemService
-)
-{
+) {
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var date by remember { mutableStateOf("") }
     var category by remember { mutableStateOf("") }
+    var transactionType by remember { mutableStateOf("") }
 
     val backgroundColor = Color(0xFF005A5A)
     val textColor = Color.White
@@ -116,6 +104,22 @@ fun AddItemsScreen(
             label = { Text("Danh mục", color = textColor) },
             modifier = Modifier
                 .fillMaxWidth()
+                .padding(bottom = 12.dp),
+            textStyle = TextStyle(color = textColor),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = inputBorderColor,
+                unfocusedBorderColor = inputBorderColor,
+                cursorColor = textColor
+            )
+        )
+
+        // Ô nhập liệu loại thu/chi
+        OutlinedTextField(
+            value = transactionType,
+            onValueChange = { transactionType = it },
+            label = { Text("Loại (Thu nhập/Chi phí)", color = textColor) },
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(bottom = 24.dp),
             textStyle = TextStyle(color = textColor),
             colors = OutlinedTextFieldDefaults.colors(
@@ -127,20 +131,29 @@ fun AddItemsScreen(
 
         Button(
             onClick = {
+                val amountValue = amount.toDoubleOrNull() ?: 0.0
+                val finalAmount = if (transactionType.equals("Chi phí", ignoreCase = true)) -amountValue else amountValue
+
                 val expense = ExpenseItem(
                     date = date,
                     category = category,
-                    amount = amount.toDoubleOrNull() ?: 0.0,
-                    note = note
+                    amount = finalAmount,
+                    note = note,
+                    type = transactionType
                 )
-                // Lưu expense vào database hoặc ViewModel
 
-                // Sau khi lưu thành công, điều hướng (đảm bảo thực hiện trên main thread)
                 CoroutineScope(Dispatchers.IO).launch {
-                    // Thực hiện tác vụ liên quan đến lưu trữ dữ liệu (ở thread khác)
-                    // Khi hoàn thành, điều hướng về home screen
+                    val isSuccess = expenseItemService.addExpense(expense)
                     withContext(Dispatchers.Main) {
-                        navController.navigate(Screen.Home.route)
+                        if (isSuccess) {
+                            // Xử lý khi lưu thành công, ví dụ điều hướng về trang chủ
+                            navController.navigate(Screen.Home.route)
+                            // Bạn có thể thêm một thông báo nhỏ cho người dùng nếu muốn
+                            // Toast.makeText(LocalContext.current, "Giao dịch đã được lưu", Toast.LENGTH_SHORT).show()
+                        } else {
+                            // Xử lý khi lưu thất bại, ví dụ hiển thị thông báo lỗi
+                            // Snackbar.make(view, "Lỗi khi lưu giao dịch", Snackbar.LENGTH_SHORT).show()
+                        }
                     }
                 }
             },
@@ -155,4 +168,3 @@ fun AddItemsScreen(
 
     }
 }
-

@@ -4,13 +4,6 @@ data class ExpenseItem(
     var date: String = "",
     var category: String = "",
     var amount: Double = 0.0,
-    var note: String = ""
+    var note: String = "",
+    var type: String = "" // Thêm trường type
 )
-
-
-data class 888(
-    category: String
-        phan tram ,
-        amout
-)
-

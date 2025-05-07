@@ -1,16 +1,37 @@
 package com.example.doancoso.presentation.ui
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Chat
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -19,14 +40,50 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import com.example.doancoso.data.models.ResultGetExpense
 import com.example.doancoso.data.repository.AuthService
+import com.example.doancoso.data.repository.ExpenseItemService
+import kotlinx.coroutines.launch
+import java.util.Random
+
+fun generateColorForCategory(category: String): Color {
+    val random = Random(
+        category.hashCode().toLong()
+    ) // Sử dụng hashCode của category làm seed để đảm bảo màu sắc nhất quán
+    return Color(random.nextInt(256), random.nextInt(256), random.nextInt(256), 255)
+}
 
 @Composable
-fun HomeScreen(navController: NavHostController, authService: AuthService) {
+fun HomeScreen(
+    navController: NavHostController,
+    authService: AuthService,
+    expenseItemService: ExpenseItemService = remember { ExpenseItemService() }
+) {
+    val incomeData = remember { mutableStateListOf<ResultGetExpense>() }
+    val expenseData = remember { mutableStateListOf<ResultGetExpense>() }
+    val totalIncome = remember { mutableStateOf(0.0) }
+    val totalExpense = remember { mutableStateOf(0.0) }
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(key1 = true) {
+        coroutineScope.launch {
+            val incomes = expenseItemService.getExpensesByType("thu")
+            Log.d("HomeScreen", "Incomes: $incomes")
+            incomeData.clear()
+            incomeData.addAll(incomes)
+            totalIncome.value = incomes.firstOrNull()?.total ?: 0.0
+
+            val expenses = expenseItemService.getExpensesByType("chi")
+            Log.d("HomeScreen", "expenses: $expenses")
+            expenseData.clear()
+            expenseData.addAll(expenses)
+            totalExpense.value = expenses.firstOrNull()?.total ?: 0.0
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -43,76 +100,114 @@ fun HomeScreen(navController: NavHostController, authService: AuthService) {
                     )
                 )
                 .padding(16.dp)
-                .padding(bottom = 56.dp) // chừa chỗ cho BottomNavBar
+                .padding(bottom = 56.dp)
         ) {
             Text(
-                text = "Biểu đồ thu chi",
+                text = "Tổng quan thu chi",
                 color = Color.Black,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)
-                    .padding(bottom = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                PieChartComposable()
-            }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50).copy(alpha = 0.9f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                // Biểu đồ thu
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(200.dp)
+                        .padding(end = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Filled.Info,
-                            contentDescription = "Balance Icon",
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Tổng tiền còn lại",
-                            color = Color.White,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "0 VNĐ",
-                        color = Color.White,
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    PieChartComposable(expenseData = incomeData, title = "Thu")
+                }
+
+                // Biểu đồ chi
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(200.dp)
+                        .padding(start = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.9f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    PieChartComposable(expenseData = expenseData, title = "Chi")
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Tổng thu
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50).copy(alpha = 0.9f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    TotalBalanceCard(title = "Tổng thu", amount = totalIncome.value)
+                }
+
+                // Tổng chi
+                Card(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF44336).copy(alpha = 0.9f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    TotalBalanceCard(title = "Tổng chi", amount = totalExpense.value)
                 }
             }
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             Text(
-                text = "Danh mục thu chi",
+                text = "Chi tiết giao dịch",
                 color = Color.Black,
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(vertical = 16.dp)
             )
 
-            ExpenseCategory("Tiền điện", "150.000 VNĐ", Color(0xFFBB86FC))
-            ExpenseCategory("Tiền học", "550.000 VNĐ", Color(0xFF03DAC5))
-            ExpenseCategory("Tiền đi chợ", "500.000 VNĐ", Color(0xFFFFC107))
+            Text(
+                text = "Các khoản thu",
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            incomeData.forEach { income ->
+                ExpenseCategory(
+                    name = income.category,
+                    amount = "+${income.amount.toInt()} VNĐ",
+                    color = generateColorForCategory(income.category)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Các khoản chi",
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            expenseData.forEach { expense ->
+                ExpenseCategory(
+                    name = expense.category,
+                    amount = "-${expense.amount.toInt()} VNĐ",
+                    color = generateColorForCategory(expense.category)
+                )
+            }
         }
 
         // Bottom Navigation ở dưới cùng
@@ -127,21 +222,36 @@ fun HomeScreen(navController: NavHostController, authService: AuthService) {
 }
 
 @Composable
-fun PieChartComposable() {
-    val entries = listOf(
-        PieEntry(150000f, "Tiền điện"),
-        PieEntry(550000f, "Tiền học"),
-        PieEntry(500000f, "Tiền đi chợ")
-    )
+fun TotalBalanceCard(title: String, amount: Double) {
+    Column(
+        modifier = Modifier.padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            color = Color.White,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "${amount.toInt()} VNĐ",
+            color = Color.White,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
 
-    val colors = listOf(
-        Color(0xFFBB86FC),
-        Color(0xFF03DAC5),
-        Color(0xFFFFC107)
-    )
+@Composable
+fun PieChartComposable(expenseData: List<ResultGetExpense>, title: String = "") {
+    val total = expenseData.sumOf { it.amount }.toFloat()
+    val pieEntries = expenseData.map {
+        val color = generateColorForCategory(it.category)
+        PieEntry(it.amount.toFloat(), it.category, color)
+    }
 
-    val total = entries.sumOf { it.value.toDouble() }.toFloat()
-    val sweepAngles = entries.map { entry ->
+    val sweepAngles = pieEntries.map { entry ->
         (entry.value / total) * 360f
     }
 
@@ -151,9 +261,17 @@ fun PieChartComposable() {
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        if (title.isNotEmpty()) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+        }
         Box(
             modifier = Modifier
-                .size(200.dp)
+                .size(150.dp) // Giảm kích thước biểu đồ
                 .clip(RoundedCornerShape(16.dp))
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
@@ -163,10 +281,10 @@ fun PieChartComposable() {
                 val radius = size.width / 2 * 0.8f
                 val holeRadius = radius * 0.3f
 
-                sweepAngles.forEachIndexed { index, sweepAngle ->
-                    val color = colors[index % colors.size]
+                pieEntries.forEachIndexed { index, entry ->
+                    val sweepAngle = (entry.value / total) * 360f
                     drawArc(
-                        color = color,
+                        color = entry.color,
                         startAngle = startAngle,
                         sweepAngle = sweepAngle,
                         useCenter = true,
@@ -184,23 +302,38 @@ fun PieChartComposable() {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            entries.forEachIndexed { index, entry ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(vertical = 4.dp)
-                ) {
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
+        if (pieEntries.isNotEmpty()) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                pieEntries.forEach { entry ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .background(entry.color, RoundedCornerShape(4.dp))
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${entry.label} (${entry.value.toInt()} VNĐ - ${
+                                String.format(
+                                    "%.1f",
+                                    (entry.value / total) * 100
+                                )
+                            }%)", fontSize = 12.sp
+                        )
+                    }
                 }
             }
+        } else {
+            Text("Không có dữ liệu", color = Color.Gray)
         }
     }
 }
 
-data class PieEntry(val value: Float, val label: String)
+data class PieEntry(val value: Float, val label: String, val color: Color)
 
 @Composable
 fun ExpenseCategory(name: String, amount: String, color: Color) {
@@ -214,11 +347,15 @@ fun ExpenseCategory(name: String, amount: String, color: Color) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
         ) {
-
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .background(color, RoundedCornerShape(4.dp))
+            )
             Spacer(modifier = Modifier.width(8.dp))
-
+            Text(text = name, fontWeight = FontWeight.Medium)
         }
-
+        Text(text = amount)
     }
 }
 
