@@ -411,7 +411,7 @@ fun BottomNavBar(navController: NavHostController) {
             },
             selected = false,
             onClick = {
-                // Tùy ý: thêm chức năng nếu muốn
+                navController.navigate(Screen.Profile.route)
             }
         )
     }
