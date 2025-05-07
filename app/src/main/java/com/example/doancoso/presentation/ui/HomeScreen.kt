@@ -338,13 +338,10 @@ fun BottomNavBar(navController: NavHostController) {
         NavigationBarItem(
             icon = { Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color(0xFF00796B)) },
             selected = false,
-<<<<<<< HEAD
             onClick = {
-                navController.navigate(Screen.Profile.route)
+               navController.navigate("profile")
             }
-=======
-            onClick = { navController.navigate("profile") }
->>>>>>> cacffd14003f7f4a6ac4222089e4dc48d211d89f
+
         )
     }
-}git add .
+}
