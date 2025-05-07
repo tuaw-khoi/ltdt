@@ -17,6 +17,7 @@ sealed class Screen(val route: String) {
     data object Signup : Screen("signup")
     data object Home : Screen("home")
     data object AddItems : Screen("addItems")
+    data object Wallet : Screen("wallet")
 }
 
 @Composable
@@ -39,6 +40,9 @@ fun AppNavigation(
         }
         composable(Screen.AddItems.route) {
             AddItemsScreen(navController, authService, expenseItemService)
+        }
+        composable(Screen.Wallet.route) {
+           WalletScreen(navController, authService)
         }
     }
 }
