@@ -19,8 +19,12 @@ sealed class Screen(val route: String) {
     data object Signup : Screen("signup")
     data object Home : Screen("home")
     data object AddItems : Screen("addItems")
+<<<<<<< HEAD
     data object Profile : Screen("profile")
     data object EditProfile : Screen("editProfile")
+=======
+    data object Wallet : Screen("wallet")
+>>>>>>> cacffd14003f7f4a6ac4222089e4dc48d211d89f
 }
 
 @Composable
@@ -44,6 +48,7 @@ fun AppNavigation(
         composable(Screen.AddItems.route) {
             AddItemsScreen(navController, authService, expenseItemService)
         }
+<<<<<<< HEAD
         composable(Screen.Profile.route) {
             ProfileScreen(navController, authService)
         }
@@ -56,5 +61,10 @@ fun AppNavigation(
             EditProfile(navController, uid, authService)
         }
 
+=======
+        composable(Screen.Wallet.route) {
+           WalletScreen(navController, authService)
+        }
+>>>>>>> cacffd14003f7f4a6ac4222089e4dc48d211d89f
     }
 }

@@ -29,10 +29,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import com.example.doancoso.data.repository.AuthService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WalletScreen() {
+fun WalletScreen(navController: NavHostController, authService: AuthService) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -140,10 +142,4 @@ fun WalletScreen() {
             )
         }
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun WalletScreenPreview() {
-    WalletScreen()
 }
