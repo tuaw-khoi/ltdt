@@ -131,7 +131,7 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            TextButton(onClick = { /* TODO: Xử lý tìm kiếm */ }) {
+            TextButton(onClick = { navController.navigate("search") }) { // Đã sửa onClick
                 Text("Tìm kiếm thêm", color = MaterialTheme.colorScheme.primary)
             }
         }

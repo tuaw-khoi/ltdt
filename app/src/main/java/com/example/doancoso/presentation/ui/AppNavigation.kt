@@ -23,6 +23,7 @@ sealed class Screen(val route: String) {
     data object EditProfile : Screen("editProfile")
     data object Wallet : Screen("wallet")
     data object History : Screen("history")
+    data object Search : Screen("search")
 
 }
 
@@ -64,6 +65,9 @@ fun AppNavigation(
         }
         composable(Screen.History.route) {
             TransactionDetailScreen(navController, authService)
+        }
+        composable(Screen.Search.route) {
+            TransactionSearchScreen(navController, authService)
         }
     }
 }
