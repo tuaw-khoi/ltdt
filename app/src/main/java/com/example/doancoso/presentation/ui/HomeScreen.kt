@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -72,7 +74,7 @@ fun HomeScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.home),
+            painter = painterResource(id = R.drawable.home2),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -81,7 +83,7 @@ fun HomeScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.White.copy(alpha = 0.3f))
+                .background(Color.White.copy(alpha = 0.0f))
         )
 
         val scrollState = rememberScrollState()
@@ -90,17 +92,9 @@ fun HomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(horizontal = 16.dp, vertical = 24.dp)
-                .padding(bottom = 72.dp)
-        ) {
-            Text(
-                text = "📊 Thống kê tài chính",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF004D40),
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
+                .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 72.dp)
+        )
+        {
             SegmentedButton(
                 options = listOf("day", "week", "month"),
                 labels = listOf("Ngày", "Tuần", "Tháng"),
@@ -128,9 +122,16 @@ fun HomeScreen(
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                         },
-                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                        colors = ExposedDropdownMenuDefaults.textFieldColors(
+                            unfocusedContainerColor = Color.White,
+                            focusedContainerColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
                     )
+
 
                     ExposedDropdownMenu(
                         expanded = expanded,
@@ -149,17 +150,7 @@ fun HomeScreen(
                     }
                 }
             }
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(340.dp),
-                shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(Color.White.copy(alpha = 0.95f)),
-                elevation = CardDefaults.cardElevation(6.dp)
-            ) {
-                PieChartComposable(chartData, title = "${selectedType.value.uppercase()} - ${selectedTimeFrame.value}")
-            }
+            PieChartComposable(chartData, title = "${selectedType.value.uppercase()} - ${selectedTimeFrame.value}")
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -170,13 +161,13 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "🕓 Lịch sử giao dịch",
+                    text = "🕓 Giao dịch gần đây",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = Color(0xFF004D40)
+                    color = Color(0xFF263238)
                 )
                 TextButton(onClick = { navController.navigate("history") }) {
-                    Text("Xem thêm", color = Color(0xFF00796B))
+                    Text("Xem thêm", color = Color(0xFFFFA000))
                 }
             }
 
@@ -184,45 +175,45 @@ fun HomeScreen(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp), // Tăng padding giữa các thẻ
+                        .padding(bottom = 12.dp),
                     colors = CardDefaults.cardColors(
-                        if (tx.type == "thu") Color(0xFFDFF0D8) else Color(0xFFFFEBEE)
+                        containerColor = Color.White
                     ),
-                    shape = RoundedCornerShape(16.dp) // Thêm bo góc mềm mại
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp), // Thêm padding vào bên trong Row
+                            .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
-                            modifier = Modifier.weight(1f) // Đảm bảo text có không gian
+                            modifier = Modifier.weight(1f)
                         ) {
                             Text(
                                 text = tx.category,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 16.sp, // Cỡ chữ lớn hơn
+                                fontSize = 16.sp,
                                 color = Color.Black
                             )
                             Text(
-                                text = tx.note ?: "Không có ghi chú", // Hiển thị ghi chú nếu có
+                                text = tx.note ?: "Không có ghi chú",
                                 fontSize = 14.sp,
-                                color = Color.Gray // Màu ghi chú xám nhạt
+                                color = Color.Gray
                             )
                         }
+                        val amountColor = if (tx.type == "Thu nhập") Color(0xFF4CAF50) else Color(0xFFE53935)
+                        val sign = if (tx.type == "Thu nhập") "+" else ""
                         Text(
-                            text = "${tx.amount.toInt()} VNĐ",
+                            text = "$sign${tx.amount.toInt()} VNĐ",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp, // Cỡ chữ số tiền lớn hơn
-                            color = if (tx.type == "thu") Color(0xFF388E3C) else Color(0xFFC62828) // Màu cho Thu và Chi
+                            fontSize = 16.sp,
+                            color = amountColor
                         )
                     }
                 }
             }
-
-
         }
 
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
@@ -232,26 +223,40 @@ fun HomeScreen(
 }
 
 @Composable
-fun SegmentedButton(options: List<String>, selected: String, onSelect: (String) -> Unit, labels: List<String> = options) {
-    Row {
+fun SegmentedButton(
+    options: List<String>,
+    selected: String,
+    onSelect: (String) -> Unit,
+    labels: List<String> = options
+) {
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0xFFE0F2F1))
+            .padding(4.dp)
+    ) {
         options.forEachIndexed { index, option ->
             val isSelected = option == selected
-            Button(
-                onClick = { onSelect(option) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isSelected) Color(0xFF00796B) else Color.White,
-                    contentColor = if (isSelected) Color.White else Color.DarkGray
-                ),
-                shape = RoundedCornerShape(50),
+            Box(
                 modifier = Modifier
-                    .padding(horizontal = 4.dp)
-                    .height(36.dp)
+                    .weight(1f)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(if (isSelected) Color(0xFF004D40) else Color.White)
+                    .clickable { onSelect(option) }
+                    .padding(vertical = 8.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Text(labels[index].uppercase())
+                Text(
+                    text = labels[index].uppercase(),
+                    color = if (isSelected) Color.White else Color(0xFF004D40),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
 }
+
 
 @Composable
 fun PieChartComposable(expenseData: List<ResultGetExpense>, title: String = "") {
@@ -262,86 +267,155 @@ fun PieChartComposable(expenseData: List<ResultGetExpense>, title: String = "") 
 
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(12.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .padding(12.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.85f))
+            .padding(16.dp)
+            .wrapContentHeight()
     ) {
-        Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(bottom = 8.dp))
+        Text(
+            title,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
 
-        Box(modifier = Modifier.size(200.dp)) {
-            Canvas(modifier = Modifier.fillMaxSize()) {
-                var startAngle = -90f
-                val centerX = size.width / 2
-                val centerY = size.height / 2
-                val radius = size.width / 2 * 0.8f
-                val holeRadius = radius * 0.3f
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            // Pie chart
+            Box(
+                modifier = Modifier
+                    .size(140.dp)
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    var startAngle = -90f
+                    val centerX = size.width / 2
+                    val centerY = size.height / 2
+                    val radius = size.width / 2 * 0.8f
+                    val holeRadius = radius * 0.3f
 
-                pieEntries.forEach { entry ->
-                    val sweepAngle = (entry.value / total) * 360f
-                    drawArc(
-                        color = entry.color,
-                        startAngle = startAngle,
-                        sweepAngle = sweepAngle,
-                        useCenter = true,
-                        topLeft = Offset(centerX - radius, centerY - radius),
-                        size = Size(radius * 2, radius * 2)
-                    )
-                    startAngle += sweepAngle
-                }
-
-                drawCircle(Color.White, holeRadius, Offset(centerX, centerY))
-            }
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (pieEntries.isNotEmpty()) {
-            Column(horizontalAlignment = Alignment.Start) {
-                pieEntries.forEach { entry ->
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
-                        Box(modifier = Modifier.size(10.dp).background(entry.color, RoundedCornerShape(2.dp)))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("${entry.label} (${entry.value.toInt()} VNĐ - ${"%.1f".format((entry.value / total) * 100)}%)", fontSize = 12.sp)
+                    pieEntries.forEach { entry ->
+                        val sweepAngle = (entry.value / total) * 360f
+                        drawArc(
+                            color = entry.color,
+                            startAngle = startAngle,
+                            sweepAngle = sweepAngle,
+                            useCenter = true,
+                            topLeft = Offset(centerX - radius, centerY - radius),
+                            size = Size(radius * 2, radius * 2)
+                        )
+                        startAngle += sweepAngle
                     }
+
+                    drawCircle(Color.White, holeRadius, Offset(centerX, centerY))
                 }
             }
-        } else {
-            Text("Không có dữ liệu", color = Color.Gray)
+
+            // Legend list
+            Column(
+                modifier = Modifier
+                    .padding(start = 12.dp)
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                if (pieEntries.isNotEmpty()) {
+                    pieEntries.forEach { entry ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = 1.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .background(entry.color, shape = RoundedCornerShape(2.dp))
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                "${entry.label}: ${entry.value.toInt()} VNĐ (${String.format("%.1f", entry.value / total * 100)}%)",
+                                fontSize = 13.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                } else {
+                    Text("Không có dữ liệu", color = Color.Gray)
+                }
+            }
         }
     }
 }
+
 
 data class PieEntry(val value: Float, val label: String, val color: Color)
 
 @Composable
 fun BottomNavBar(navController: NavHostController) {
+    val selectedItem = remember { mutableStateOf("home") } // Theo dõi item được chọn
+
     NavigationBar(
-        containerColor = Color.White,
+        containerColor = Color(0xFF00796B),
         tonalElevation = 8.dp,
         modifier = Modifier.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
     ) {
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Home, contentDescription = "Home", tint = Color(0xFF00796B)) },
-            selected = true,
-            onClick = { navController.navigate("home") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Chat, contentDescription = "Chat", tint = Color(0xFF00796B)) },
-            selected = false,
-            onClick = { navController.navigate("wallet") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Add, contentDescription = "addItems", tint = Color(0xFFFFA000)) },
-            selected = false,
-            onClick = { navController.navigate("addItems") }
-        )
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.Person, contentDescription = "Profile", tint = Color(0xFF00796B)) },
-            selected = false,
+            icon = {
+                Icon(
+                    Icons.Default.Home,
+                    contentDescription = "Home",
+                    tint = if (selectedItem.value == "home") Color.White else Color.White.copy(alpha = 0.7f)
+                )
+            },
+            selected = selectedItem.value == "home",
             onClick = {
-               navController.navigate("profile")
+                selectedItem.value = "home"
+                navController.navigate("home")
             }
-
+        )
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    Icons.Default.Chat,
+                    contentDescription = "Chat",
+                    tint = if (selectedItem.value == "wallet") Color.White else Color.White.copy(alpha = 0.7f)
+                )
+            },
+            selected = selectedItem.value == "wallet",
+            onClick = {
+                selectedItem.value = "wallet"
+                navController.navigate("wallet")
+            }
+        )
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "addItems",
+                    tint = if (selectedItem.value == "addItems") Color(0xFFFFC107) else Color(0xFFFFC107).copy(alpha = 0.7f) // Sử dụng màu vàng nhạt hơn cho item add
+                )
+            },
+            selected = selectedItem.value == "addItems",
+            onClick = {
+                selectedItem.value = "addItems"
+                navController.navigate("addItems")
+            }
+        )
+        NavigationBarItem(
+            icon = {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = "Profile",
+                    tint = if (selectedItem.value == "profile") Color.White else Color.White.copy(alpha = 0.7f)
+                )
+            },
+            selected = selectedItem.value == "profile",
+            onClick = {
+                selectedItem.value = "profile"
+                navController.navigate("profile")
+            }
         )
     }
 }

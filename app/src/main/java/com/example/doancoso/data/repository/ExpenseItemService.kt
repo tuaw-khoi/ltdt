@@ -1,5 +1,6 @@
 package com.example.doancoso.data.repository
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.example.doancoso.data.models.ExpenseItem
@@ -35,6 +36,15 @@ class ExpenseItemService {
         return auth.currentUser?.uid
     }
 
+    suspend fun getUserName(): String {
+        val uid = getCurrentUserId() ?: return "Chưa xác định"
+        return try {
+            val snapshot = FirebaseDatabase.getInstance().getReference("users").child(uid).get().await()
+            snapshot.child("name").getValue(String::class.java) ?: "Chưa xác định"
+        } catch (e: Exception) {
+            "Chưa xác định"
+        }
+    }
     suspend fun addExpense(expense: ExpenseItem): Boolean {
         val uid = getCurrentUserId() ?: return false
         return try {
@@ -54,6 +64,7 @@ class ExpenseItemService {
             val expenseItems = mutableListOf<ExpenseItem>()
             for (child in snapshot.children) {
                 val expense = child.getValue(ExpenseItem::class.java)
+                Log.d("ExpenseItemService", "Expense item: $expense") // Thêm dòng log này
                 expense?.let { expenseItems.add(it) }
             }
             expenseItems
