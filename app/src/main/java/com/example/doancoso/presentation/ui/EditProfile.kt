@@ -42,6 +42,7 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
     var phone by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
     var address by remember { mutableStateOf("") }
+    var avatarUrl by remember { mutableStateOf("") }
     val userState = remember { mutableStateOf<User?>(null) }
 
     val context = LocalContext.current
@@ -60,6 +61,7 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
             phone = it.phone
             gender = it.gender
             address = it.address
+            avatarUrl = it.avatarUrl ?: ""  // Set initial avatar URL
         }
     }
 
@@ -97,7 +99,8 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
         ) {
             Image(
                 painter = avatarUri?.let { rememberAsyncImagePainter(it) }
-                    ?: painterResource(id = R.drawable.ic_avatar_placeholder),
+                    ?: if (avatarUrl.isNotEmpty()) rememberAsyncImagePainter(avatarUrl)
+                    else painterResource(id = R.drawable.ic_avatar_placeholder),
                 contentDescription = "Avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -215,12 +218,10 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
         Button(
             onClick = {
                 CoroutineScope(Dispatchers.Main).launch {
-                    val updateResult = authService.updateUser(uid, userName, email, phone, gender, address)
-
+                    // Bỏ qua phần upload avatar
+                    val updateResult = authService.updateUser(uid, userName, email, phone, gender, address, avatarUrl)
                     if (updateResult) {
                         navController.popBackStack()
-                    } else {
-                        // Handle error
                     }
                 }
             },

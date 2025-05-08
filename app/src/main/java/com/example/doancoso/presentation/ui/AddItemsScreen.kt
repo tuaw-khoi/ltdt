@@ -172,13 +172,12 @@ fun AddItemsScreen(
 
                 val expense = ExpenseItem(
                     date = date,
-                    timestamp = System.currentTimeMillis(), // ✅ Thêm dòng này
+                    timestamp = System.currentTimeMillis(),
                     category = category,
                     amount = finalAmount,
                     note = note,
                     type = transactionType
                 )
-
 
                 CoroutineScope(Dispatchers.IO).launch {
                     val success = expenseItemService.addExpense(expense)
@@ -193,7 +192,7 @@ fun AddItemsScreen(
             },
             modifier = Modifier.fillMaxWidth().height(50.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue) // Changed to green
         ) {
             Text("Lưu", fontSize = 18.sp, color = Color.White)
         }

@@ -9,6 +9,11 @@ import kotlinx.coroutines.tasks.await
 open class AuthService {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val database = FirebaseDatabase.getInstance().getReference("users")
+//    private val cloudinaryHelper = CloudinaryHelp()  // <-- sử dụng helper đã tạo
+//    suspend fun uploadImage(imagePath: String): String? {
+//        return cloudinaryHelper.uploadImage(imagePath)
+//    }
+
 
     suspend fun register(name: String, email: String, password: String): Boolean {
         return try {
@@ -104,15 +109,24 @@ open class AuthService {
     }
 
 
-    suspend fun updateUser(uid: String, name: String, email: String, phone: String, gender: String, address: String): Boolean {
+    suspend fun updateUser(
+        uid: String,
+        name: String,
+        email: String,
+        phone: String,
+        gender: String,
+        address: String,
+        avatarUrl: String
+    ): Boolean {
         return try {
-            val user = User(uid, name, email, phone, gender, address)
+            val user = User(uid, name, email, phone, gender, address, avatarUrl)
             database.child(uid).setValue(user).await()
             true
         } catch (e: Exception) {
             false
         }
     }
+
 
 
     fun logout() {

@@ -6,5 +6,6 @@ data class User(
     val email: String = "",
     val phone: String = "",
     val gender: String = "",
-    val address: String = ""
+    val address: String = "",
+    val avatarUrl: String = ""
 )
