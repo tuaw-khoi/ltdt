@@ -95,6 +95,27 @@ fun HomeScreen(
                 .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 72.dp)
         )
         {
+            // Add chatbot button at the top
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                FloatingActionButton(
+                    onClick = { navController.navigate("chatbot") },
+                    containerColor = Color(0xFF00796B),
+                    contentColor = Color.White,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Chat,
+                        contentDescription = "Chatbot Hỗ Trợ",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+
             SegmentedButton(
                 options = listOf("day", "week", "month"),
                 labels = listOf("Ngày", "Tuần", "Tháng"),

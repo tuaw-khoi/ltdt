@@ -24,7 +24,7 @@ sealed class Screen(val route: String) {
     data object Wallet : Screen("wallet")
     data object History : Screen("history")
     data object Search : Screen("search")
-
+    data object Chatbot : Screen("chatbot")
 }
 
 @Composable
@@ -51,7 +51,9 @@ fun AppNavigation(
         composable(Screen.Profile.route) {
             ProfileScreen(navController, authService)
         }
-
+        composable(Screen.Chatbot.route) {
+            ChatbotScreen(navController, authService)
+        }
         composable(
             "editProfile/{uid}",
             arguments = listOf(navArgument("uid") { type = NavType.StringType },)
