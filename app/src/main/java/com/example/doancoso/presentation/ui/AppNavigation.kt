@@ -25,6 +25,8 @@ sealed class Screen(val route: String) {
     data object History : Screen("history")
     data object Search : Screen("search")
     data object Chatbot : Screen("chatbot")
+    data object AddBudget : Screen("add_budget")
+    data object BudgetGroup : Screen("budget_group")
 }
 
 @Composable
@@ -63,7 +65,7 @@ fun AppNavigation(
         }
 
         composable(Screen.Wallet.route) {
-           WalletScreen(navController, authService)
+            BudgetScreen(navController, authService)
         }
         composable(Screen.History.route) {
             TransactionDetailScreen(navController, authService)
@@ -71,5 +73,9 @@ fun AppNavigation(
         composable(Screen.Search.route) {
             TransactionSearchScreen(navController, authService)
         }
+        composable(Screen.AddBudget.route) {
+            AddBudgetScreen(navController, authService)
+        }
+
     }
 }

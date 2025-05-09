@@ -42,23 +42,21 @@ fun ChatbotScreen(
     var isLoading by remember { mutableStateOf(false) }
     val chatbotService = remember { ChatbotService() }
     val coroutineScope = rememberCoroutineScope()
-    
-    // Load initial data
+
     var expenseItems by remember { mutableStateOf(listOf<ExpenseItem>()) }
     var groupedExpenses by remember { mutableStateOf(listOf<ResultGetExpense>()) }
-    
+
     LaunchedEffect(Unit) {
         expenseItems = expenseItemService.getAllExpenses()
         groupedExpenses = expenseItemService.getGroupedExpensesBy("Chi phí", "month")
-        
-        // Add welcome message
+
         messages = listOf(
             ChatMessage(
                 "Xin chào! Tôi là trợ lý tài chính của bạn. Tôi có thể giúp bạn:\n" +
-                "1. Xem thông tin về các giao dịch gần đây\n" +
-                "2. Phân tích chi tiêu theo danh mục\n" +
-                "3. Tư vấn về quản lý tài chính\n" +
-                "Bạn có thể hỏi tôi bất kỳ câu hỏi nào liên quan đến tài chính của bạn.",
+                        "1. Xem thông tin về các giao dịch gần đây\n" +
+                        "2. Phân tích chi tiêu theo danh mục\n" +
+                        "3. Tư vấn về quản lý tài chính\n" +
+                        "Bạn có thể hỏi tôi bất kỳ câu hỏi nào liên quan đến tài chính của bạn.",
                 false
             )
         )
@@ -67,12 +65,20 @@ fun ChatbotScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Chatbot Hỗ Trợ") },
+                title = {
+                    Text(
+                        "Chatbot Hỗ Trợ",
+                        color = Color.White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Quay lại")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Quay lại", tint = Color.White)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.mediumTopAppBarColors(
+                    containerColor = Color(0xFF2196F3)
+                )
             )
         }
     ) { paddingValues ->
@@ -80,9 +86,8 @@ fun ChatbotScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color(0xFFF5F5F5))
+                .background(Color(0xFFE3F2FD)) // Light blue background
         ) {
-            // Chat messages
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -95,11 +100,10 @@ fun ChatbotScreen(
                 }
             }
 
-            // Message input
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TextField(
@@ -123,7 +127,7 @@ fun ChatbotScreen(
                             messages = messages + ChatMessage(userMessage, true)
                             messageText = ""
                             isLoading = true
-                            
+
                             coroutineScope.launch {
                                 try {
                                     val response = chatbotService.getBotResponse(
@@ -147,13 +151,13 @@ fun ChatbotScreen(
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color(0xFF00796B)
+                            color = Color(0xFF1976D2)
                         )
                     } else {
                         Icon(
                             Icons.Filled.Send,
                             contentDescription = "Gửi",
-                            tint = Color(0xFF00796B)
+                            tint = Color(0xFF1976D2)
                         )
                     }
                 }
@@ -167,7 +171,7 @@ fun ChatMessageItem(message: ChatMessage) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
+            .padding(vertical = 6.dp),
         horizontalArrangement = if (message.isFromUser) Arrangement.End else Arrangement.Start
     ) {
         Box(
@@ -181,15 +185,16 @@ fun ChatMessageItem(message: ChatMessage) {
                     )
                 )
                 .background(
-                    if (message.isFromUser) Color(0xFF00796B) else Color.White
+                    if (message.isFromUser) Color(0xFF1976D2) else Color.White
                 )
                 .padding(12.dp)
         ) {
             Text(
                 text = message.message,
                 color = if (message.isFromUser) Color.White else Color.Black,
-                fontSize = 16.sp
+                fontSize = 16.sp,
+                lineHeight = 20.sp
             )
         }
     }
-} 
+}

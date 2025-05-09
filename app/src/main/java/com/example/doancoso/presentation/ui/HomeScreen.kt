@@ -74,7 +74,7 @@ fun HomeScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.home2),
+            painter = painterResource(id = R.drawable.home1),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -104,7 +104,7 @@ fun HomeScreen(
             ) {
                 FloatingActionButton(
                     onClick = { navController.navigate("chatbot") },
-                    containerColor = Color(0xFF00796B),
+                    containerColor = Color(0xFF1D7E9B),
                     contentColor = Color.White,
                     modifier = Modifier.size(48.dp)
                 ) {
@@ -262,14 +262,14 @@ fun SegmentedButton(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (isSelected) Color(0xFF004D40) else Color.White)
+                    .background(if (isSelected) Color(0xFF1D7E9B) else Color.White)
                     .clickable { onSelect(option) }
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = labels[index].uppercase(),
-                    color = if (isSelected) Color.White else Color(0xFF004D40),
+                    color = if (isSelected) Color.White else Color(0xFF1D7E9B),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -378,7 +378,7 @@ fun BottomNavBar(navController: NavHostController) {
     val selectedItem = remember { mutableStateOf("home") } // Theo dõi item được chọn
 
     NavigationBar(
-        containerColor = Color(0xFF00796B),
+        containerColor = Color(0xFF1D7E9B),
         tonalElevation = 8.dp,
         modifier = Modifier.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
     ) {
@@ -400,7 +400,7 @@ fun BottomNavBar(navController: NavHostController) {
             icon = {
                 Icon(
                     Icons.Default.Chat,
-                    contentDescription = "Chat",
+                    contentDescription = "wallet",
                     tint = if (selectedItem.value == "wallet") Color.White else Color.White.copy(alpha = 0.7f)
                 )
             },
