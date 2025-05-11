@@ -6,14 +6,14 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -35,7 +35,6 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
 
     val coroutineScope = rememberCoroutineScope()
 
-    // Lấy dữ liệu người dùng và chi tiêu
     LaunchedEffect(Unit) {
         coroutineScope.launch {
             try {
@@ -48,14 +47,13 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
             try {
                 val items = expenseItemService.getAllExpenses()
                 Log.d("TransactionScreen", "Số lượng giao dịch: ${items.size}")
-                expenseItems = items
+                expenseItems = items.sortedByDescending { it.timestamp }
             } catch (e: Exception) {
                 Log.e("TransactionScreen", "Lỗi lấy giao dịch: ${e.message}")
             }
         }
     }
 
-    // Lọc giao dịch theo tab
     val filteredTransactions = remember(selectedTab, expenseItems) {
         when (selectedTab) {
             1 -> expenseItems.filter { it.amount > 0 }
@@ -64,43 +62,113 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
         }
     }
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var itemToDelete by remember { mutableStateOf<ExpenseItem?>(null) }
+
+    val onDeleteTransaction: (ExpenseItem) -> Unit = { item ->
+        itemToDelete = item
+        showDeleteDialog = true
+    }
+
+    if (showDeleteDialog && itemToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false; itemToDelete = null },
+            title = { Text("Xác nhận xóa") },
+            text = { Text("Bạn có chắc chắn muốn xóa giao dịch này?") },
+            confirmButton = {
+                Button(onClick = {
+                    itemToDelete?.let { expense ->
+                        coroutineScope.launch {
+                            val keyToDelete = expense.id
+                            if (keyToDelete.isNotEmpty()) {
+                                val isDeleted = expenseItemService.deleteExpenseByKey(keyToDelete)
+                                if (isDeleted) {
+                                    try {
+                                        expenseItems = expenseItemService.getAllExpenses()
+                                            .sortedByDescending { it.timestamp }
+                                    } catch (e: Exception) {
+                                        Log.e(
+                                            "TransactionScreen",
+                                            "Lỗi làm mới giao dịch sau xóa: ${e.message}"
+                                        )
+                                    }
+                                } else {
+                                    Log.e("TransactionScreen", "Xóa giao dịch thất bại.")
+                                }
+                            } else {
+                                Log.e("TransactionScreen", "Không tìm thấy ID của giao dịch để xóa.")
+                            }
+                        }
+                    }
+                    showDeleteDialog = false
+                    itemToDelete = null
+                }) {
+                    Text("Xóa")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDeleteDialog = false; itemToDelete = null }) {
+                    Text("Hủy")
+                }
+            }
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background) // Sử dụng màu nền của theme
-            .padding(top = 35.dp) // Giảm padding top
+            .background(MaterialTheme.colorScheme.background)
+            .padding(top = 32.dp) // Thêm padding top cho toàn bộ màn hình
     ) {
-        // Sử dụng TabRow
+        // Nút mũi tên quay lại ở trên cùng
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp, top = 16.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { navController.popBackStack() }) {
+                Icon(Icons.Filled.ArrowBack, contentDescription = "Quay lại")
+            }
+
+            Text(
+                "Chi tiết giao dịch",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(start = 16.dp)
+            )
+        }
+
         TabRow(
             selectedTabIndex = selectedTab,
-            containerColor = MaterialTheme.colorScheme.surface, // Màu nền của tab row
-            contentColor = MaterialTheme.colorScheme.onSurface, // Màu chữ/icon trên tab row
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
             indicator = { tabPositions ->
                 TabRowDefaults.Indicator(
                     modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                    color = MaterialTheme.colorScheme.primary // Màu indicator
+                    color = MaterialTheme.colorScheme.primary
                 )
-            }
+            },
+            modifier = Modifier.padding(top = 8.dp)
         ) {
             tabs.forEachIndexed { index, title ->
                 Tab(
                     selected = selectedTab == index,
                     onClick = { selectedTab = index },
-                    text = { Text(title.uppercase()) } // In hoa (tùy chọn)
+                    text = { Text(title.uppercase()) }
                 )
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp)) // Thêm khoảng trắng
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Sử dụng Card cho AccountHeader
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer // Màu nền card
+                containerColor = MaterialTheme.colorScheme.primaryContainer
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
@@ -109,7 +177,7 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
             ) {
                 Text(
                     text = userName,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer, // Màu chữ
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -127,21 +195,21 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
         ) {
             Text(
                 text = "Lịch sử giao dịch",
-                style = MaterialTheme.typography.titleMedium, // Sử dụng kiểu chữ của theme
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground
             )
-            TextButton(onClick = { navController.navigate("search") }) { // Đã sửa onClick
+            TextButton(onClick = { navController.navigate("search") }) {
                 Text("Tìm kiếm thêm", color = MaterialTheme.colorScheme.primary)
             }
         }
 
-        TransactionList(transactions = filteredTransactions)
+        TransactionList(transactions = filteredTransactions, onDelete = onDeleteTransaction)
     }
 }
 
 @Composable
-fun TransactionItem(expense: ExpenseItem) {
+fun TransactionItem(expense: ExpenseItem, onDelete: (ExpenseItem) -> Unit) {
     val isIncoming = expense.amount > 0
     val amountColor = if (isIncoming) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
 
@@ -154,50 +222,63 @@ fun TransactionItem(expense: ExpenseItem) {
         "0 VND"
     }
 
-    Card( // Sử dụng Card cho mỗi item
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = expense.date,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = expense.note ?: "(Không có ghi chú)",
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurface
+                    text = expense.date,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 )
-                Text(
-                    text = formattedAmount,
-                    color = amountColor,
-                    fontWeight = FontWeight.Bold,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = expense.note ?: "(Không có ghi chú)",
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = formattedAmount,
+                        color = amountColor,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+            IconButton(onClick = { onDelete(expense) }) {
+                Icon(Icons.Filled.Delete, contentDescription = "Xóa giao dịch", tint = MaterialTheme.colorScheme.error)
             }
         }
     }
 }
 
 @Composable
-fun TransactionList(transactions: List<ExpenseItem>) {
+fun TransactionList(transactions: List<ExpenseItem>, onDelete: (ExpenseItem) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
         items(transactions) { expense ->
-            TransactionItem(expense = expense)
+            TransactionItem(expense = expense, onDelete = onDelete)
         }
     }
 }

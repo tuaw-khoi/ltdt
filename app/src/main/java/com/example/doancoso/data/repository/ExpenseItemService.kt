@@ -63,17 +63,58 @@ class ExpenseItemService {
             val snapshot = database.child(uid).get().await()
             val expenseItems = mutableListOf<ExpenseItem>()
             for (child in snapshot.children) {
-                val expense = child.getValue(ExpenseItem::class.java)
-                Log.d("ExpenseItemService", "Mục chi phí: $expense") // Thêm dòng log này
-                expense?.let { expenseItems.add(it) }
+                val expenseData = child.getValue(ExpenseItem::class.java)
+                val key = child.key
+                expenseData?.let { expense ->
+                    expenseItems.add(expense.copy(id = key ?: ""))
+                    Log.d("ExpenseItemService", "Mục chi phí: $expense, ID: $key")
+                }
             }
             expenseItems
+        } catch (e: Exception) {
+            Log.e("ExpenseItemService", "Lỗi khi lấy tất cả chi phí: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun deleteExpenseByKey(key: String): Boolean {
+        val uid = getCurrentUserId() ?: return false
+        return try {
+            database.child(uid).child(key).removeValue().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun getTransactionHistoryGroupedByDate(): List<GroupedTransaction> {
+        val uid = getCurrentUserId() ?: return emptyList()
+        return try {
+            val snapshot = database.child(uid).get().await()
+            val expenseItems = mutableListOf<ExpenseItemHistory>()
+            for (child in snapshot.children) {
+                val item = child.getValue(ExpenseItemHistory::class.java)
+                val id = child.key ?: continue
+                item?.let {
+                    val expenseItemWithId = it.copy(id = id)
+                    expenseItems.add(expenseItemWithId)
+                }
+            }
+            val grouped = expenseItems.groupBy { Pair(it.date, it.type) }
+            grouped.map { (dateAndType, items) ->
+                val (date, type) = dateAndType
+                GroupedTransaction(
+                    date = date,
+                    type = type,
+                    total = items.sumOf { it.amount },
+                    transactions = items.sortedByDescending { it.timestamp }
+                )
+            }.sortedByDescending { it.date }
         } catch (e: Exception) {
             emptyList()
         }
     }
 
-    // ✅ Hàm mới: Lấy dữ liệu nhóm theo ngày/tuần/tháng + theo loại
     suspend fun getGroupedExpensesBy(type: String, timeFrame: String): List<ResultGetExpense> {
         val allExpenses = getAllExpenses()
         val formatter = when (timeFrame) {
@@ -122,48 +163,6 @@ class ExpenseItemService {
         return results
     }
 
-    suspend fun deleteExpenseByKey(key: String): Boolean {
-        val uid = getCurrentUserId() ?: return false
-        return try {
-            database.child(uid).child(key).removeValue().await()
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-    suspend fun getTransactionHistoryGroupedByDate(): List<GroupedTransaction> {
-        val uid = getCurrentUserId() ?: return emptyList()
-        return try {
-            val snapshot = database.child(uid).get().await()
-            val expenseItems = mutableListOf<ExpenseItemHistory>()
-            for (child in snapshot.children) {
-                // Lấy item từ snapshot và map trực tiếp vào ExpenseItemHistory
-                val item = child.getValue(ExpenseItemHistory::class.java)
-                val id = child.key ?: continue
-                // Nếu item không null, gán id vào và thêm vào danh sách expenseItems
-                item?.let {
-                    val expenseItemWithId = it.copy(id = id) // Thêm id vào ExpenseItemHistory
-                    expenseItems.add(expenseItemWithId)
-                }
-            }
-            // Gom nhóm theo ngày và loại giao dịch (Thu nhập / Chi phí)
-            val grouped = expenseItems.groupBy { Pair(it.date, it.type) }
-            // Chuyển thành GroupedTransaction và sắp xếp theo ngày
-            grouped.map { (dateAndType, items) ->
-                val (date, type) = dateAndType
-                GroupedTransaction(
-                    date = date,
-                    type = type,
-                    total = items.sumOf { it.amount },
-                    transactions = items.sortedByDescending { it.timestamp }
-                )
-            }.sortedByDescending { it.date } // Sắp xếp theo ngày mới nhất
-        } catch (e: Exception) {
-            emptyList() // Trả về danh sách rỗng nếu có lỗi
-        }
-    }
-
     suspend fun getExpensesByDateRange(
         startDate: LocalDate?,
         endDate: LocalDate?,
@@ -186,7 +185,6 @@ class ExpenseItemService {
                 val id = child.key ?: continue
                 item?.let {
                     Log.d("ExpenseService", "Đang xử lý item: $it")
-                    // Lọc các mục có timestamp nằm trong phạm vi rộng để đảm bảo không bỏ sót
                     if (it.timestamp in startTimeMillisForQuery until endTimeMillisForQuery) {
                         val matchesType = typeFilter.isNullOrBlank() || it.type.equals(typeFilter, ignoreCase = true)
                         Log.d("ExpenseService", "Matches type ($typeFilter): $matchesType, item type: ${it.type}")
@@ -194,7 +192,6 @@ class ExpenseItemService {
                             try {
                                 val itemDate = LocalDate.parse(it.date, dateFormatter)
                                 Log.d("ExpenseService", "Parsed date: $itemDate")
-                                // Lọc chính xác theo trường date
                                 if (!(startDate.isAfter(itemDate) || endDate.isBefore(itemDate))) {
                                     Log.d("ExpenseService", "Thêm item vào kết quả: $it")
                                     results.add(it.copy(id = id))
@@ -203,7 +200,6 @@ class ExpenseItemService {
                                 }
                             } catch (e: Exception) {
                                 Log.e("ExpenseService", "Lỗi parse ngày: ${e.message}")
-                                // Xử lý lỗi parse nếu cần
                             }
                         } else {
                             Log.d("ExpenseService", "Loại bỏ do không khớp loại.")

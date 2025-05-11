@@ -1,6 +1,7 @@
 package com.example.doancoso.data.models
 
 data class ExpenseItem(
+    val id: String = "",
     val date: String = "", // "2025-05-07"
     val timestamp: Long = 0L, // System.currentTimeMillis()
     val category: String = "",
