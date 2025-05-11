@@ -1,5 +1,7 @@
 package com.example.doancoso.presentation.ui
 
+import java.text.NumberFormat
+import java.util.Locale
 import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -50,7 +52,7 @@ fun HomeScreen(
     expenseItemService: ExpenseItemService = remember { ExpenseItemService() }
 ) {
     val selectedType = remember { mutableStateOf("Thu nhập") }
-    val selectedTimeFrame = remember { mutableStateOf("day") }
+    val selectedTimeFrame = remember { mutableStateOf("Ngày") }
     val chartData = remember { mutableStateListOf<ResultGetExpense>() }
     val recentTransactions = remember { mutableStateListOf<ExpenseItem>() }
     val coroutineScope = rememberCoroutineScope()
@@ -117,7 +119,7 @@ fun HomeScreen(
             }
 
             SegmentedButton(
-                options = listOf("day", "week", "month"),
+                options = listOf("Ngày", "Tuần", "Tháng"),
                 labels = listOf("Ngày", "Tuần", "Tháng"),
                 selected = selectedTimeFrame.value,
                 onSelect = {
@@ -226,8 +228,12 @@ fun HomeScreen(
                         }
                         val amountColor = if (tx.type == "Thu nhập") Color(0xFF4CAF50) else Color(0xFFE53935)
                         val sign = if (tx.type == "Thu nhập") "+" else ""
+
+// Định dạng tiền tệ với dấu chấm ngăn cách hàng nghìn
+                        val formattedAmount = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(tx.amount.toInt())
+
                         Text(
-                            text = "$sign${tx.amount.toInt()} VNĐ",
+                            text = "$sign$formattedAmount VNĐ",
                             fontWeight = FontWeight.Bold,
                             fontSize = 16.sp,
                             color = amountColor
@@ -354,8 +360,11 @@ fun PieChartComposable(expenseData: List<ResultGetExpense>, title: String = "") 
                                     .background(entry.color, shape = RoundedCornerShape(2.dp))
                             )
                             Spacer(modifier = Modifier.width(6.dp))
+                            val formattedValue = NumberFormat.getNumberInstance(Locale("vi", "VN")).format(entry.value.toInt())
+                            val percentage = String.format("%.1f", entry.value / total * 100)
+
                             Text(
-                                "${entry.label}: ${entry.value.toInt()} VNĐ (${String.format("%.1f", entry.value / total * 100)}%)",
+                                text = "${entry.label}: $formattedValue VNĐ ($percentage%)",
                                 fontSize = 13.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis

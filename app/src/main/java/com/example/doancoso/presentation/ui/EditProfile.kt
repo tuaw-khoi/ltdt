@@ -1,6 +1,9 @@
 package com.example.doancoso.presentation.ui
 
+import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -31,9 +34,12 @@ import coil.compose.rememberAsyncImagePainter
 import com.example.doancoso.R
 import com.example.doancoso.data.models.User
 import com.example.doancoso.data.repository.AuthService
+
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun EditProfile(navController: NavHostController, uid: String, authService: AuthService) {
@@ -44,13 +50,19 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
     var address by remember { mutableStateOf("") }
     var avatarUrl by remember { mutableStateOf("") }
     val userState = remember { mutableStateOf<User?>(null) }
+    val selectedImageBitmap = remember { mutableStateOf<Bitmap?>(null) }
+    var selectedImageUri by remember { mutableStateOf<Uri?>(null) }
 
     val context = LocalContext.current
+    val file = File(context.cacheDir, "avatar.jpg") // Define a temporary file to save the bitmap
+
     var avatarUri by remember { mutableStateOf<Uri?>(null) }
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        avatarUri = uri
+        uri?.let {
+            selectedImageUri = it
+        }
     }
 
     LaunchedEffect(uid) {
@@ -68,6 +80,7 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
     val pastelBackground = Color(0xFFDCEEF2)
     val cardColor = Color.White
     val primaryColor = Color(0xFF1976D2)
+    val coroutineScope = rememberCoroutineScope()  // Nhớ coroutine scope
 
     Column(
         modifier = Modifier
@@ -122,7 +135,11 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
                     },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.CameraAlt, contentDescription = "Change photo", tint = primaryColor)
+                Icon(
+                    Icons.Default.CameraAlt,
+                    contentDescription = "Change photo",
+                    tint = primaryColor
+                )
             }
         }
 
@@ -214,15 +231,57 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
         }
 
         Spacer(modifier = Modifier.height(32.dp))
+//        val imgService = imgService() // Initialize the service
 
         Button(
             onClick = {
-                CoroutineScope(Dispatchers.Main).launch {
-                    // Bỏ qua phần upload avatar
-                    val updateResult = authService.updateUser(uid, userName, email, phone, gender, address, avatarUrl)
-                    if (updateResult) {
-                        navController.popBackStack()
-                    }
+                if (selectedImageUri == null && avatarUrl.isEmpty()) {
+                    Toast.makeText(context, "Vui lòng chọn một ảnh", Toast.LENGTH_SHORT).show()
+                    return@Button
+                }
+
+                coroutineScope.launch {
+//                    try {
+//                        val newAvatarUrl = if (selectedImageUri != null) {
+//                            val file = imgService().getFileFromUri(context, selectedImageUri!!)
+//                            if (file != null) {
+//                                imgService().uploadAvatarToCloudinary(file) { url ->
+//                                    url?.let {
+//                                        // Update user with new avatar
+//                                        val updateResult = authService.updateUser(
+//                                            uid, userName, email, phone, gender, address, it
+//                                        )
+//                                        if (updateResult) {
+//                                            navController.popBackStack()
+//                                        } else {
+//                                            Toast.makeText(context, "Lỗi khi cập nhật thông tin", Toast.LENGTH_SHORT).show()
+//                                        }
+//                                    } ?: run {
+//                                        Toast.makeText(context, "Lỗi khi tải ảnh lên", Toast.LENGTH_SHORT).show()
+//                                    }
+//                                }
+//                                return@launch
+//                            } else {
+//                                Toast.makeText(context, "Không thể xử lý ảnh", Toast.LENGTH_SHORT).show()
+//                                return@launch
+//                            }
+//                        } else {
+//                            avatarUrl // Keep existing avatar if no new one selected
+//                        }
+//
+//                        // If no new image was selected, just update other fields
+//                        val updateResult = authService.updateUser(
+//                            uid, userName, email, phone, gender, address, newAvatarUrl
+//                        )
+//                        if (updateResult) {
+//                            navController.popBackStack()
+//                        } else {
+//                            Toast.makeText(context, "Lỗi khi cập nhật thông tin", Toast.LENGTH_SHORT).show()
+//                        }
+//                    } catch (e: Exception) {
+//                        Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+//                        Log.e("EditProfile", "Error updating profile", e)
+//                    }
                 }
             },
             modifier = Modifier
@@ -236,5 +295,5 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
             Spacer(modifier = Modifier.width(8.dp))
             Text("Lưu thay đổi", color = Color.White)
         }
-    }
 }
+    }

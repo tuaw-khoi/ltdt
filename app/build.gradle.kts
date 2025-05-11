@@ -47,8 +47,15 @@ dependencies {
     implementation ("androidx.compose.material3:material3:1.1.0")
     implementation ("androidx.compose.material:material-icons-extended:1.5.0")
 
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
+
+
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.0")
 
     implementation("com.cloudinary:cloudinary-android:2.3.1")
     implementation ("com.cloudinary:cloudinary-android:1.30.0")
@@ -74,6 +81,9 @@ dependencies {
     implementation(libs.androidx.animation.core.lint)
     implementation(libs.generativeai)
     implementation(libs.androidx.webkit)
+    implementation(libs.vision.common)
+    implementation(libs.play.services.mlkit.text.recognition.common)
+    implementation(libs.play.services.mlkit.text.recognition)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -83,5 +93,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.androidx.material3)
     implementation("androidx.compose.material3:material3:1.2.1")
+    implementation ("com.cloudinary:cloudinary-android:2.3.1")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
 
 }

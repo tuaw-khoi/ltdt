@@ -189,7 +189,7 @@ fun LoginScreen(navController: NavHostController,authService : AuthService ,sign
                                 color = Color.White
                             )
                         } else {
-                            Text("Login", modifier = Modifier.padding(8.dp))
+                            Text("Đăng nhập", modifier = Modifier.padding(8.dp))
                         }
                     }
 
@@ -200,8 +200,8 @@ fun LoginScreen(navController: NavHostController,authService : AuthService ,sign
                             modifier = Modifier,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Text("Don't have an account? Sign up", color = Color.Gray)
-                            Text("Google Sign In", color = Color.Gray)
+                            Text("Bạn chưa có tài khoản? Đăng ký", color = Color.Gray)
+                            Text("Đăng nhập bằng Google!", color = Color.Gray)
                         }
                     }
 
