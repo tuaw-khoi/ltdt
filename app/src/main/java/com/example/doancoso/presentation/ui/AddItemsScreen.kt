@@ -68,31 +68,32 @@ fun AddItemsScreen(
 //            coroutineScope.launch {
 //                val recognizedText = textRecognitionManager.recognizeTextFromImage(context, it)
 //
-//                // Kiểm tra lại văn bản nhận diện
-//                Log.d("AddItemsScreen", "Recognized text: $recognizedText")
+//                Log.d("AddItemsScreen", "Recognized text:\n$recognizedText")
 //
-//                // Áp dụng regex để trích xuất các thông tin từ văn bản hóa đơn
-//                val moneyRegex = Regex("""(\d+)(?:\s?đ|\s*)""") // Điều chỉnh regex
-//                val dateRegex = Regex("""Ngày:\s*(\d{1,2}/\d{1,2}/\d{4})""") // Tìm ngày
-//                val totalRegex = Regex("""Tổng:\s*(\d+)(?:\s?đ|\s*)""") // Tìm tổng số tiền
+//                // ✅ Regex tìm tất cả số tiền có dạng 10,000 hoặc 54000
+//                val moneyRegex = Regex("""\d{1,3}(?:[.,]\d{3})+|\d{5,}""")
 //
-//                // Trích xuất số tiền (từng món) và tổng tiền
-//                val amounts = moneyRegex.findAll(recognizedText).map { it.groupValues[1].replace(",", "") }.toList()
-//                Log.d("AddItemsScreen", "All amounts extracted: $amounts")
+//                // ✅ Lấy tất cả các số tiền
+//                val allAmounts = moneyRegex.findAll(recognizedText).map {
+//                    it.value.replace("[.,]".toRegex(), "").toLongOrNull() ?: 0L
+//                }.toList()
 //
-//                // Cập nhật số tiền từ hóa đơn vào form
-//                rawAmount = amounts.sumOf { it.toLongOrNull() ?: 0L }.toString()
+//                Log.d("AddItemsScreen", "All money values: $allAmounts")
 //
-//                // Cập nhật ngày tháng từ hóa đơn vào form
+//                // ✅ Lấy số cuối cùng (giả định là tổng), chia cho 1000
+//                val totalAmount = if (allAmounts.isNotEmpty()) allAmounts.last() else 0L
+//                rawAmount = (totalAmount / 1000).toString()
+//
+//                Log.d("AddItemsScreen", "Final total (divided by 1000): $rawAmount")
+//
+//                // ✅ Trích xuất ngày, giữ nguyên regex cũ để tìm "Ngày: 18/02/2019"
+//                val dateRegex = Regex("""Ngày:\s*(\d{1,2}/\d{1,2}/\d{4})""")
 //                date = dateRegex.find(recognizedText)?.groupValues?.get(1) ?: ""
+//                Log.d("AddItemsScreen", "Date found: $date")
 //
-//                // Cập nhật ghi chú vào form
 //                note = "Thông tin từ hóa đơn"
-//
-//                // Cập nhật tổng số tiền vào form nếu tìm thấy
-//                val totalAmount = amounts.sumOf { it.toLongOrNull() ?: 0L }
-//                rawAmount = totalAmount.toString()
 //            }
+
             coroutineScope.launch {
                 val recognizedText = textRecognitionManager.recognizeTextFromImage(context, it)
 
@@ -114,9 +115,10 @@ fun AddItemsScreen(
 
                 Log.d("AddItemsScreen", "Final total (divided by 1000): $rawAmount")
 
-                // ✅ Trích xuất ngày, giữ nguyên regex cũ để tìm "Ngày: 18/02/2019"
-                val dateRegex = Regex("""Ngày:\s*(\d{1,2}/\d{1,2}/\d{4})""")
-                date = dateRegex.find(recognizedText)?.groupValues?.get(1) ?: ""
+                // ✅ Trích xuất ngày theo nhiều định dạng như "Ngày:", "ngày in:", hoặc chỉ có ngày
+                val dateRegex = Regex("""(?i)(ngày\s*(in)?\s*[:\-]?\s*)?(\d{1,2}/\d{1,2}/\d{4})""")
+                val dateMatch = dateRegex.find(recognizedText)
+                date = dateMatch?.groups?.get(3)?.value ?: ""
                 Log.d("AddItemsScreen", "Date found: $date")
 
                 note = "Thông tin từ hóa đơn"
