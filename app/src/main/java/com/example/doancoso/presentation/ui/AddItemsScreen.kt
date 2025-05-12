@@ -20,6 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -34,10 +35,7 @@ import com.example.doancoso.data.models.ExpenseItem
 import com.example.doancoso.data.repository.AuthService
 import com.example.doancoso.data.repository.ExpenseItemService
 import com.example.doancoso.data.repository.TextRecognitionManager
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.text.NumberFormat
 import java.util.*
 
@@ -58,6 +56,8 @@ fun AddItemsScreen(
     var transactionType by remember { mutableStateOf("Thu nhập") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
+    val primaryColor = Color(0xFF6BC1C0) // Xanh ngọc
+    val textColor = Color.Black
     val textRecognitionManager = TextRecognitionManager()
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -65,72 +65,29 @@ fun AddItemsScreen(
     ) { uri: Uri? ->
         imageUri = uri
         uri?.let {
-//            coroutineScope.launch {
-//                val recognizedText = textRecognitionManager.recognizeTextFromImage(context, it)
-//
-//                Log.d("AddItemsScreen", "Recognized text:\n$recognizedText")
-//
-//                // ✅ Regex tìm tất cả số tiền có dạng 10,000 hoặc 54000
-//                val moneyRegex = Regex("""\d{1,3}(?:[.,]\d{3})+|\d{5,}""")
-//
-//                // ✅ Lấy tất cả các số tiền
-//                val allAmounts = moneyRegex.findAll(recognizedText).map {
-//                    it.value.replace("[.,]".toRegex(), "").toLongOrNull() ?: 0L
-//                }.toList()
-//
-//                Log.d("AddItemsScreen", "All money values: $allAmounts")
-//
-//                // ✅ Lấy số cuối cùng (giả định là tổng), chia cho 1000
-//                val totalAmount = if (allAmounts.isNotEmpty()) allAmounts.last() else 0L
-//                rawAmount = (totalAmount / 1000).toString()
-//
-//                Log.d("AddItemsScreen", "Final total (divided by 1000): $rawAmount")
-//
-//                // ✅ Trích xuất ngày, giữ nguyên regex cũ để tìm "Ngày: 18/02/2019"
-//                val dateRegex = Regex("""Ngày:\s*(\d{1,2}/\d{1,2}/\d{4})""")
-//                date = dateRegex.find(recognizedText)?.groupValues?.get(1) ?: ""
-//                Log.d("AddItemsScreen", "Date found: $date")
-//
-//                note = "Thông tin từ hóa đơn"
-//            }
-
             coroutineScope.launch {
                 val recognizedText = textRecognitionManager.recognizeTextFromImage(context, it)
 
                 Log.d("AddItemsScreen", "Recognized text:\n$recognizedText")
 
-                // ✅ Regex tìm tất cả số tiền có dạng 10,000 hoặc 54000
                 val moneyRegex = Regex("""\d{1,3}(?:[.,]\d{3})+|\d{5,}""")
-
-                // ✅ Lấy tất cả các số tiền
                 val allAmounts = moneyRegex.findAll(recognizedText).map {
                     it.value.replace("[.,]".toRegex(), "").toLongOrNull() ?: 0L
                 }.toList()
 
-                Log.d("AddItemsScreen", "All money values: $allAmounts")
-
-                // ✅ Lấy số cuối cùng (giả định là tổng), chia cho 1000
                 val totalAmount = if (allAmounts.isNotEmpty()) allAmounts.last() else 0L
                 rawAmount = (totalAmount / 1000).toString()
 
-                Log.d("AddItemsScreen", "Final total (divided by 1000): $rawAmount")
-
-                // ✅ Trích xuất ngày theo nhiều định dạng như "Ngày:", "ngày in:", hoặc chỉ có ngày
                 val dateRegex = Regex("""(?i)(ngày\s*(in)?\s*[:\-]?\s*)?(\d{1,2}/\d{1,2}/\d{4})""")
                 val dateMatch = dateRegex.find(recognizedText)
                 date = dateMatch?.groups?.get(3)?.value ?: ""
-                Log.d("AddItemsScreen", "Date found: $date")
 
                 note = "Thông tin từ hóa đơn"
             }
-
         }
     }
 
-    val primaryColor = Color(0xFF0288D1)
-    val textColor = Color.Black
     val calendar = Calendar.getInstance()
-
     val showDatePicker = {
         DatePickerDialog(
             context,
@@ -182,16 +139,20 @@ fun AddItemsScreen(
             OutlinedTextField(
                 value = rawAmount,
                 onValueChange = { rawAmount = it.filter { ch -> ch.isDigit() } },
-                label = { Text("Số tiền (nghìn VNĐ)") },
+                label = { Text("Số tiền (nghìn VNĐ)", color = primaryColor) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
                 textStyle = TextStyle(color = textColor),
                 singleLine = true,
                 placeholder = { Text("VNĐ") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryColor,
+                    unfocusedBorderColor = primaryColor
+                ),
                 trailingIcon = {
                     if (formattedDisplay.isNotBlank()) {
-                        Text(text = "${formattedDisplay} VNĐ", fontSize = 12.sp, color = Color.Gray)
+                        Text(text = "$formattedDisplay VNĐ", fontSize = 12.sp, color = Color.Gray)
                     }
                 }
             )
@@ -199,17 +160,21 @@ fun AddItemsScreen(
             OutlinedTextField(
                 value = note,
                 onValueChange = { note = it },
-                label = { Text("Ghi chú") },
+                label = { Text("Ghi chú", color = primaryColor) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryColor,
+                    unfocusedBorderColor = primaryColor
+                )
             )
 
             OutlinedTextField(
                 value = date,
                 onValueChange = {},
-                label = { Text("Chọn ngày") },
+                label = { Text("Chọn ngày", color = primaryColor) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
@@ -222,17 +187,25 @@ fun AddItemsScreen(
                         tint = primaryColor
                     )
                 },
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryColor,
+                    unfocusedBorderColor = primaryColor
+                )
             )
 
             OutlinedTextField(
                 value = category,
                 onValueChange = { category = it },
-                label = { Text("Danh mục") },
+                label = { Text("Danh mục", color = primaryColor) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp),
-                singleLine = true
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = primaryColor,
+                    unfocusedBorderColor = primaryColor
+                )
             )
 
             var expanded by remember { mutableStateOf(false) }
@@ -248,22 +221,33 @@ fun AddItemsScreen(
                 OutlinedTextField(
                     value = transactionType,
                     onValueChange = {},
-                    label = { Text("Loại giao dịch") },
+                    label = { Text("Loại giao dịch", color = primaryColor) },
                     readOnly = true,
                     trailingIcon = {
                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                     },
                     modifier = Modifier
                         .menuAnchor()
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    textStyle = TextStyle(color = primaryColor),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = primaryColor
+                    )
                 )
+
                 ExposedDropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {
                     types.forEach { selection ->
                         DropdownMenuItem(
-                            text = { Text(selection) },
+                            text = {
+                                Text(
+                                    text = selection,
+                                    color = primaryColor // ✅ THÊM DÒNG NÀY
+                                )
+                            },
                             onClick = {
                                 transactionType = selection
                                 expanded = false
@@ -273,7 +257,6 @@ fun AddItemsScreen(
                 }
             }
 
-            // Hình ảnh hóa đơn (với icon ở cuối dòng)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -291,7 +274,7 @@ fun AddItemsScreen(
                     onClick = { imagePickerLauncher.launch("image/*") },
                     modifier = Modifier
                         .size(36.dp)
-                        .background(Color(0xFFE0F7FA), shape = CircleShape)
+                        .background(primaryColor.copy(alpha = 0.2f), shape = CircleShape)
                 ) {
                     Icon(
                         imageVector = Icons.Default.CameraAlt,
@@ -301,40 +284,44 @@ fun AddItemsScreen(
                 }
             }
 
-            Button(
-                onClick = {
-                    if (rawAmount.isBlank() || note.isBlank() || date.isBlank() || category.isBlank()) {
-                        return@Button
-                    }
-
-                    val amountValue = rawAmount.toDoubleOrNull()?.times(1000) ?: return@Button
-                    val finalAmount = if (transactionType == "Chi phí") -amountValue else amountValue
-
-                    val expense = ExpenseItem(
-                        date = date,
-                        timestamp = System.currentTimeMillis(),
-                        category = category,
-                        amount = finalAmount,
-                        note = note,
-                        type = transactionType,
-                        imageUri = imageUri?.toString()
-                    )
-
-                    coroutineScope.launch {
-                        val success = expenseItemService.addExpense(expense)
-                        if (success) {
-                            navController.navigate(Screen.Home.route)
-                        }
-                    }
-                },
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue)
+                    .height(50.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(Color(0xFF6BC1C0), Color(0xFFA8E063))
+                        )
+                    )
+                    .clickable {
+                        if (rawAmount.isBlank() || note.isBlank() || date.isBlank() || category.isBlank()) return@clickable
+
+                        val amountValue = rawAmount.toDoubleOrNull()?.times(1000) ?: return@clickable
+                        val finalAmount = if (transactionType == "Chi phí") -amountValue else amountValue
+
+                        val expense = ExpenseItem(
+                            date = date,
+                            timestamp = System.currentTimeMillis(),
+                            category = category,
+                            amount = finalAmount,
+                            note = note,
+                            type = transactionType,
+                            imageUri = imageUri?.toString()
+                        )
+
+                        coroutineScope.launch {
+                            val success = expenseItemService.addExpense(expense)
+                            if (success) {
+                                navController.navigate(Screen.Home.route)
+                            }
+                        }
+                    },
+                contentAlignment = Alignment.Center
             ) {
                 Text("Lưu", fontSize = 18.sp, color = Color.White)
             }
+
         }
     }
 }

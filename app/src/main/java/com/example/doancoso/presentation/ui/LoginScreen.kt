@@ -5,6 +5,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -31,63 +33,40 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavHostController,authService : AuthService ,signIn: () -> Unit) {
-//    val viewModel: AuthViewModel = viewModel()
-//    val authState by viewModel.authState.collectAsState()
-
+fun LoginScreen(navController: NavHostController, authService: AuthService, signIn: () -> Unit) {
+    val coroutineScope = rememberCoroutineScope()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    // LaunchedEffect để xử lý logic điều hướng một lần
-//    LaunchedEffect(authState) {
-//        when (authState) {
-//            is AuthState.UserLoggedIn -> {
-//                val user = (authState as AuthState.UserLoggedIn).user
-//                Toast.makeText(navController.context, "Welcome, ${user?.name}!", Toast.LENGTH_SHORT).show()
-//                navController.navigate("home") {
-//                    popUpTo("login") { inclusive = true } // Xóa màn hình login khỏi back stack
-//                }
-//                viewModel.resetAuthState() // Reset trạng thái sau khi điều hướng
-//            }
-//            else -> {}
-//        }
-//    }
-    Scaffold(
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
-    ) { paddingValues ->
-        Box(
+
+    val greenishBlue = Color(0xFF64C5B1)
+
+    Scaffold(snackbarHost = { SnackbarHost(hostState = snackbarHostState) }) { paddingValues ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF1E2A44))
-                .padding(paddingValues)
-                .padding(bottom = 50.dp),
-            contentAlignment = Alignment.BottomCenter
+                .background(Color.White)
+                .padding(paddingValues),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-//        when (authState) {
-//            is AuthState.Loading -> CircularProgressIndicator()
-//            is AuthState.Error -> {
-//                val error = (authState as AuthState.Error).message
-//                Text(text = error, color = MaterialTheme.colorScheme.error)
-//            }
-//            else -> {
-
-            // Thêm hình ảnh biểu đồ tài chính
             Image(
-                painter = painterResource(id = R.drawable.financial_chart),
+                painter = painterResource(id = R.drawable.expense),
                 contentDescription = "Financial Chart",
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .align(Alignment.TopCenter) // Đặt hình ảnh ở trên cùng
+                    .height(260.dp)
+                    .background(Color(0xFFADE1B9))
             )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
                     .wrapContentHeight()
-                    .clip(RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(12.dp))
                     .background(Color.White)
                     .padding(16.dp)
             ) {
@@ -97,10 +76,9 @@ fun LoginScreen(navController: NavHostController,authService : AuthService ,sign
                         .padding(16.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Hiển thị thông báo lỗi nếu có
-                    errorMessage?.let { error ->
+                    errorMessage?.let {
                         Text(
-                            text = error,
+                            text = it,
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodyMedium,
                             modifier = Modifier.padding(bottom = 16.dp)
@@ -111,19 +89,17 @@ fun LoginScreen(navController: NavHostController,authService : AuthService ,sign
                         value = email,
                         onValueChange = {
                             email = it
-                            errorMessage = null // Xóa lỗi khi người dùng bắt đầu nhập lại
+                            errorMessage = null
                         },
                         label = { Text("Email") },
                         trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Email,
-                                contentDescription = "Email Icon"
-                            )
+                            Icon(imageVector = Icons.Default.Email, contentDescription = "Email Icon")
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            unfocusedBorderColor = Color.Black,
-                            focusedBorderColor = Color.Black
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = greenishBlue,
+                            unfocusedBorderColor = greenishBlue,
+                            cursorColor = greenishBlue
                         ),
                         isError = errorMessage != null
                     )
@@ -134,54 +110,111 @@ fun LoginScreen(navController: NavHostController,authService : AuthService ,sign
                         value = password,
                         onValueChange = {
                             password = it
-                            errorMessage = null // Xóa lỗi khi người dùng bắt đầu nhập lại
+                            errorMessage = null
                         },
                         label = { Text("Password") },
                         visualTransformation = PasswordVisualTransformation(),
                         trailingIcon = {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = "Lock Icon"
-                            )
+                            Icon(imageVector = Icons.Default.Lock, contentDescription = "Password Icon")
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
-                            unfocusedBorderColor = Color.Black,
-                            focusedBorderColor = Color.Black
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = greenishBlue,
+                            unfocusedBorderColor = greenishBlue,
+                            cursorColor = greenishBlue
                         ),
                         isError = errorMessage != null
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
-                        onClick = {
-                            coroutineScope.launch {
-                                // Kiểm tra cơ bản trước khi gọi API
-                                if (email.isBlank() || password.isBlank()) {
-                                    errorMessage = "Please fill in both email and password"
-                                    return@launch
-                                }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Divider(modifier = Modifier.weight(1f).padding(end = 8.dp), color = Color.Gray)
+                        Text("Continue with", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+                        Divider(modifier = Modifier.weight(1f).padding(start = 8.dp), color = Color.Gray)
+                    }
 
-                                isLoading = true
-                                val success = authService.login(email, password)
-                                isLoading = false
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                                if (success) {
-                                    navController.navigate("home") {
-                                        popUpTo("login") { inclusive = true }
-                                    }
-                                } else {
-                                    errorMessage = "Invalid email or password"
-                                    snackbarHostState.showSnackbar("Invalid email or password")
-                                }
-                            }
-                        },
+                    Row(
+                        modifier = Modifier.fillMaxWidth(0.9f),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .border(1.dp, Color.Gray, CircleShape)
+                                .clip(CircleShape)
+                                .background(Color.White)
+                                .clickable { signIn() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.google),
+                                contentDescription = "Google Sign In",
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(64.dp)
+                                .border(1.dp, Color.Gray, CircleShape)
+                                .clip(CircleShape)
+                                .background(Color.White),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.fb),
+                                contentDescription = "Facebook Sign In",
+                                modifier = Modifier.size(48.dp)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = 24.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF007BFF)),
-                        enabled = !isLoading
+                            .height(48.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                Brush.horizontalGradient(
+                                    colors = listOf(Color(0xFF6BC1C0), Color(0xFFA8E063))
+                                )
+                            )
+                            .clickable(enabled = !isLoading) {
+                                coroutineScope.launch {
+                                    if (email.isBlank() || password.isBlank()) {
+                                        errorMessage = "Please fill in both email and password"
+                                        return@launch
+                                    }
+
+                                    isLoading = true
+                                    val success = authService.login(email, password)
+                                    isLoading = false
+
+                                    if (success) {
+                                        navController.navigate("home") {
+                                            popUpTo("login") { inclusive = true }
+                                        }
+                                        Toast.makeText(
+                                            navController.context,
+                                            "Login successful!",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    } else {
+                                        errorMessage = "Invalid email or password"
+                                        snackbarHostState.showSnackbar("Invalid email or password")
+                                    }
+                                }
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
@@ -189,50 +222,17 @@ fun LoginScreen(navController: NavHostController,authService : AuthService ,sign
                                 color = Color.White
                             )
                         } else {
-                            Text("Đăng nhập", modifier = Modifier.padding(8.dp))
+                            Text("ĐĂNG NHẬP", color = Color.Black)
                         }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
 
                     TextButton(onClick = { navController.navigate("signup") }) {
-                        Column(
-                            modifier = Modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("Bạn chưa có tài khoản? Đăng ký", color = Color.Gray)
-                            Text("Đăng nhập bằng Google!", color = Color.Gray)
-                        }
-                    }
-
-                    Button(
-                        onClick = signIn,
-                        modifier = Modifier
-                            .size(76.dp)
-                            .padding(top = 8.dp),
-                        shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                        border = BorderStroke(1.dp, Color.Gray)
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.gg),
-                            contentDescription = "Google Sign In",
-                            modifier = Modifier.size(50.dp)
-                        )
+                        Text("Chưa có tài khoản? Đăng ký", color = Color.Gray)
                     }
                 }
             }
         }
     }
 }
-//    }
-//}
-
-// thêm vào để giả định
-//@Preview (showBackground = true)
-//@Composable
-//fun LoginScreenPreview() {
-//    // Tạo một NavHostController giả (mock) hoặc bỏ qua điều hướng trong Preview
-//    val navController = rememberNavController() // Sử dụng rememberNavController() cho Preview
-//    LoginScreen( navController,)
-//}

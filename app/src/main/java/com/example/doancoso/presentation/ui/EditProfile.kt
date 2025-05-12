@@ -79,7 +79,7 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
 
     val pastelBackground = Color(0xFFDCEEF2)
     val cardColor = Color.White
-    val primaryColor = Color(0xFF1976D2)
+    val primaryColor = Color(0xFF6BC1C0)
     val coroutineScope = rememberCoroutineScope()  // Nhớ coroutine scope
 
     Column(

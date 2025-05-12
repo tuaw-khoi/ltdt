@@ -106,7 +106,7 @@ fun HomeScreen(
             ) {
                 FloatingActionButton(
                     onClick = { navController.navigate("chatbot") },
-                    containerColor = Color(0xFF1D7E9B),
+                    containerColor = Color(0xFF6BC1C0),
                     contentColor = Color.White,
                     modifier = Modifier.size(48.dp)
                 ) {
@@ -268,14 +268,14 @@ fun SegmentedButton(
                 modifier = Modifier
                     .weight(1f)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(if (isSelected) Color(0xFF1D7E9B) else Color.White)
+                    .background(if (isSelected) Color(0xFF6BC1C0) else Color.White)
                     .clickable { onSelect(option) }
                     .padding(vertical = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = labels[index].uppercase(),
-                    color = if (isSelected) Color.White else Color(0xFF1D7E9B),
+                    color = if (isSelected) Color.White else Color(0xFF6BC1C0),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -387,7 +387,7 @@ fun BottomNavBar(navController: NavHostController) {
     val selectedItem = remember { mutableStateOf("home") } // Theo dõi item được chọn
 
     NavigationBar(
-        containerColor = Color(0xFF1D7E9B),
+        containerColor = Color(0xFF6BC1C0),
         tonalElevation = 8.dp,
         modifier = Modifier.clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
     ) {

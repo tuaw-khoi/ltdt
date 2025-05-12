@@ -36,7 +36,7 @@ import com.example.doancoso.data.models.User
 fun ProfileScreen(navController: NavHostController, authService: AuthService) {
     val pastelBackground = Color(0xFFDCEEF2)
     val cardColor = Color.White
-    val primaryColor = Color(0xFF1976D2)
+    val primaryColor = Color(0xFF6BC1C0)
 
     val userState = remember { mutableStateOf<User?>(null) }
     val refreshTrigger = remember { mutableStateOf(false) } // Dùng để trigger LaunchedEffect sau khi cập nhật
@@ -176,7 +176,7 @@ fun ProfileOption(icon: ImageVector, label: String, onClick: () -> Unit) {
                 icon,
                 contentDescription = label,
                 modifier = Modifier.size(24.dp),
-                tint = Color(0xFF1976D2)
+                tint = Color(0xFF6BC1C0)
             )
             Spacer(modifier = Modifier.width(16.dp))
             Text(label, fontSize = 16.sp, color = Color.Black)
