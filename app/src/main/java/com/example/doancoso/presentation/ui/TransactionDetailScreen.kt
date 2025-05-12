@@ -14,6 +14,7 @@ import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -23,6 +24,8 @@ import com.example.doancoso.data.models.ExpenseItem
 import com.example.doancoso.data.repository.AuthService
 import com.example.doancoso.data.repository.ExpenseItemService
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 
 @Composable
 fun TransactionDetailScreen(navController: NavHostController, authService: AuthService) {
@@ -34,6 +37,9 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
     var expenseItems by remember { mutableStateOf<List<ExpenseItem>>(emptyList()) }
 
     val coroutineScope = rememberCoroutineScope()
+    val numberFormat = NumberFormat.getNumberInstance(Locale("vi", "VN")) // Định dạng số Việt Nam
+    val tealColor = Color(0xFF64C5B1) // Màu xanh ngọc bích
+    val lightTealColor = Color(0xFFC5D2D1) // Màu xanh ngọc bích nhạt
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
@@ -168,7 +174,7 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
                 .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
+                containerColor = tealColor // Màu nền cho Card chứa tên người dùng
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
@@ -204,18 +210,19 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
             }
         }
 
-        TransactionList(transactions = filteredTransactions, onDelete = onDeleteTransaction)
+        TransactionList(transactions = filteredTransactions, onDelete = onDeleteTransaction, itemBackgroundColor = lightTealColor)
     }
 }
 
 @Composable
-fun TransactionItem(expense: ExpenseItem, onDelete: (ExpenseItem) -> Unit) {
+fun TransactionItem(expense: ExpenseItem, onDelete: (ExpenseItem) -> Unit, backgroundColor: Color = MaterialTheme.colorScheme.surface) {
     val isIncoming = expense.amount > 0
     val amountColor = if (isIncoming) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+    val numberFormat = NumberFormat.getNumberInstance(Locale("vi", "VN")) // Định dạng số Việt Nam
 
     val formattedAmount = try {
         val amount = kotlin.math.abs(expense.amount)
-        val formatted = "%,.0f".format(amount)
+        val formatted = numberFormat.format(amount)
         "${if (isIncoming) "+" else "-"}$formatted VND"
     } catch (e: Exception) {
         Log.e("TransactionItem", "Lỗi format số: ${e.message}")
@@ -227,7 +234,10 @@ fun TransactionItem(expense: ExpenseItem, onDelete: (ExpenseItem) -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor // Sử dụng màu nền được truyền vào
+        )
     ) {
         Row(
             modifier = Modifier
@@ -273,12 +283,12 @@ fun TransactionItem(expense: ExpenseItem, onDelete: (ExpenseItem) -> Unit) {
 }
 
 @Composable
-fun TransactionList(transactions: List<ExpenseItem>, onDelete: (ExpenseItem) -> Unit) {
+fun TransactionList(transactions: List<ExpenseItem>, onDelete: (ExpenseItem) -> Unit, itemBackgroundColor: Color) {
     LazyColumn(
         modifier = Modifier.fillMaxSize()
     ) {
         items(transactions) { expense ->
-            TransactionItem(expense = expense, onDelete = onDelete)
+            TransactionItem(expense = expense, onDelete = onDelete, backgroundColor = itemBackgroundColor)
         }
     }
 }

@@ -105,7 +105,7 @@ fun AddItemsScreen(
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.home1),
+            painter = painterResource(id = R.drawable.home5),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop

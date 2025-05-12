@@ -25,9 +25,11 @@ import com.example.doancoso.data.models.ExpenseItemHistory
 import com.example.doancoso.data.repository.AuthService
 import com.example.doancoso.data.repository.ExpenseItemService
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +48,8 @@ fun TransactionSearchScreen(navController: NavHostController, authService: AuthS
     val endDatePickerState = rememberDatePickerState()
     var selectedTab by remember { mutableStateOf(0) } // State cho tab
     val tabs = listOf("Toàn bộ", "Tiền vào", "Tiền ra")
+    val searchButtonColor = Color(0xFF64C5B1) // Màu xanh ngọc bích cho nút tìm kiếm
+    val numberFormat = NumberFormat.getNumberInstance(Locale("vi", "VN")) // Định dạng số Việt Nam
 
     // Lọc searchResults dựa trên selectedTab và allSearchResultsForDateRange
     LaunchedEffect(selectedTab, allSearchResultsForDateRange) {
@@ -185,9 +189,10 @@ fun TransactionSearchScreen(navController: NavHostController, authService: AuthS
                     },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(8.dp),
-                    enabled = !showStartDatePicker && !showEndDatePicker
+                    enabled = !showStartDatePicker && !showEndDatePicker,
+                    colors = ButtonDefaults.buttonColors(containerColor = searchButtonColor) // Đặt màu nền cho nút
                 ) {
-                    Text("Tìm kiếm", fontSize = 16.sp)
+                    Text("Tìm kiếm", fontSize = 16.sp, color = Color.White) // Đảm bảo chữ có màu tương phản
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 if (searchResults.isEmpty() && searchError == null) {
@@ -223,7 +228,7 @@ fun TransactionSearchScreen(navController: NavHostController, authService: AuthS
                                     }
                                 }
                                 Text(
-                                    text = "${if (transaction.type == "Thu nhập") "+" else ""}${transaction.amount} VND",
+                                    text = "${if (transaction.type == "Thu nhập") "+" else ""}${numberFormat.format(transaction.amount)} VND",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = if (transaction.type == "Thu nhập") Color.Green else Color.Red
                                 )

@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Home
@@ -38,6 +37,11 @@ import com.example.doancoso.data.repository.AuthService
 import com.example.doancoso.data.repository.ExpenseItemService
 import kotlinx.coroutines.launch
 import java.util.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddBox
+import androidx.compose.material.icons.filled.Create // Ví dụ: Icon bút chì cho thêm mới
+import androidx.compose.material.icons.filled.NoteAdd // Một ví dụ khác: Icon thêm ghi chú
+import androidx.compose.material.icons.filled.PlaylistAdd // Thêm vào danh sách
 
 fun generateColorForCategory(category: String): Color {
     val random = Random(category.hashCode().toLong())
@@ -76,7 +80,7 @@ fun HomeScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
-            painter = painterResource(id = R.drawable.home1),
+            painter = painterResource(id = R.drawable.home5),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -190,7 +194,7 @@ fun HomeScreen(
                     color = Color(0xFF263238)
                 )
                 TextButton(onClick = { navController.navigate("history") }) {
-                    Text("Xem thêm", color = Color(0xFFFFA000))
+                    Text("Xem thêm", color = Color(0xFF655E5E))
                 }
             }
 
@@ -422,9 +426,9 @@ fun BottomNavBar(navController: NavHostController) {
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Add,
+                    Icons.Default.AddBox, // Hoặc Icons.Default.NoteAdd, hoặc Icons.Default.PlaylistAdd
                     contentDescription = "addItems",
-                    tint = if (selectedItem.value == "addItems") Color(0xFFFFC107) else Color(0xFFFFC107).copy(alpha = 0.7f) // Sử dụng màu vàng nhạt hơn cho item add
+                    tint = if (selectedItem.value == "addItems") Color.White else Color.White.copy(alpha = 0.7f)
                 )
             },
             selected = selectedItem.value == "addItems",
