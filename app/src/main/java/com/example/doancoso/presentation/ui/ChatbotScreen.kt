@@ -77,7 +77,7 @@ fun ChatbotScreen(
                     }
                 },
                 colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = Color(0xFF2196F3)
+                    containerColor = Color(0xFF009688)
                 )
             )
         }
@@ -151,13 +151,13 @@ fun ChatbotScreen(
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color(0xFF1976D2)
+                            color = Color(0xFF009688)
                         )
                     } else {
                         Icon(
                             Icons.Filled.Send,
                             contentDescription = "Gửi",
-                            tint = Color(0xFF1976D2)
+                            tint = Color(0xFF009688)
                         )
                     }
                 }
@@ -185,7 +185,7 @@ fun ChatMessageItem(message: ChatMessage) {
                     )
                 )
                 .background(
-                    if (message.isFromUser) Color(0xFF1976D2) else Color.White
+                    if (message.isFromUser) Color(0xFF009688) else Color.White
                 )
                 .padding(12.dp)
         ) {

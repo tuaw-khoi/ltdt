@@ -1,5 +1,6 @@
 package com.example.doancoso.presentation.ui
 
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -30,9 +31,14 @@ fun WelcomeScreen(navController: NavHostController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFB2DFDB)),
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(Color(0xFF6BC1C0), Color(0xFFA8E063))
+                )
+            ),
         contentAlignment = Alignment.TopCenter
-    ) {
+    )
+    {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxWidth()
