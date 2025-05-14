@@ -133,3 +133,7 @@ open class AuthService {
         auth.signOut()
     }
 }
+sealed class LoginResult {
+    data class Success(val role: String) : LoginResult()
+    data class Error(val message: String) : LoginResult()
+}

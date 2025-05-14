@@ -52,7 +52,6 @@ fun generateColorForCategory(category: String): Color {
 @Composable
 fun HomeScreen(
     navController: NavHostController,
-    authService: AuthService,
     expenseItemService: ExpenseItemService = remember { ExpenseItemService() }
 ) {
     val selectedType = remember { mutableStateOf("Thu nhập") }
