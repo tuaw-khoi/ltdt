@@ -56,7 +56,7 @@ fun AddItemsScreen(
     var transactionType by remember { mutableStateOf("Thu nhập") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
 
-    val primaryColor = Color(0xFF6BC1C0) // Xanh ngọc
+    val primaryColor = Color(0xFF424B4B) // Xanh ngọc
     val textColor = Color.Black
     val textRecognitionManager = TextRecognitionManager()
 
