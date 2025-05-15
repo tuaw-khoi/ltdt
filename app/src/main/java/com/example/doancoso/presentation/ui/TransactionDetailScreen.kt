@@ -9,6 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
@@ -35,11 +37,16 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
     val expenseItemService = remember { ExpenseItemService() }
     var userName by remember { mutableStateOf("Đang tải...") }
     var expenseItems by remember { mutableStateOf<List<ExpenseItem>>(emptyList()) }
+    var totalIncomeRaw by remember { mutableStateOf(0.0) }
+    val numberFormat = NumberFormat.getNumberInstance(Locale("vi", "VN"))
+    val formattedTotalIncome: String by remember(totalIncomeRaw) {
+        derivedStateOf { numberFormat.format(totalIncomeRaw) + " VND" }
+    }
+    var isTotalIncomeVisible by remember { mutableStateOf(true) }
 
     val coroutineScope = rememberCoroutineScope()
-    val numberFormat = NumberFormat.getNumberInstance(Locale("vi", "VN")) // Định dạng số Việt Nam
-    val tealColor = Color(0xFF64C5B1) // Màu xanh ngọc bích
-    val lightTealColor = Color(0xFFC5D2D1) // Màu xanh ngọc bích nhạt
+    val tealColor = Color(0xFF64C5B1)
+    val lightTealColor = Color(0xFFC5D2D1)
 
     LaunchedEffect(Unit) {
         coroutineScope.launch {
@@ -54,6 +61,7 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
                 val items = expenseItemService.getAllExpenses()
                 Log.d("TransactionScreen", "Số lượng giao dịch: ${items.size}")
                 expenseItems = items.sortedByDescending { it.timestamp }
+                totalIncomeRaw = items.filter { it.amount > 0 }.sumOf { it.amount.toDouble() }
             } catch (e: Exception) {
                 Log.e("TransactionScreen", "Lỗi lấy giao dịch: ${e.message}")
             }
@@ -90,8 +98,9 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
                                 val isDeleted = expenseItemService.deleteExpenseByKey(keyToDelete)
                                 if (isDeleted) {
                                     try {
-                                        expenseItems = expenseItemService.getAllExpenses()
-                                            .sortedByDescending { it.timestamp }
+                                        val updatedExpenses = expenseItemService.getAllExpenses()
+                                        expenseItems = updatedExpenses.sortedByDescending { it.timestamp }
+                                        totalIncomeRaw = updatedExpenses.filter { it.amount > 0 }.sumOf { it.amount.toDouble() }
                                     } catch (e: Exception) {
                                         Log.e(
                                             "TransactionScreen",
@@ -124,9 +133,8 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(top = 32.dp) // Thêm padding top cho toàn bộ màn hình
+            .padding(top = 32.dp)
     ) {
-        // Nút mũi tên quay lại ở trên cùng
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -174,19 +182,38 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
                 .padding(horizontal = 16.dp),
             shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(
-                containerColor = tealColor // Màu nền cho Card chứa tên người dùng
+                containerColor = tealColor
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = userName,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
-                )
+                Column {
+                    Text(
+                        text = userName,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = if (isTotalIncomeVisible) "Số dư: **** VND" else "Số dư: $formattedTotalIncome",
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        fontSize = 14.sp
+                    )
+                }
+                IconButton(onClick = { isTotalIncomeVisible = !isTotalIncomeVisible }) {
+                    Icon(
+                        imageVector = if (isTotalIncomeVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
+                        contentDescription = if (isTotalIncomeVisible) "Ẩn số dư" else "Hiện số dư",
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
             }
         }
 
@@ -218,7 +245,7 @@ fun TransactionDetailScreen(navController: NavHostController, authService: AuthS
 fun TransactionItem(expense: ExpenseItem, onDelete: (ExpenseItem) -> Unit, backgroundColor: Color = MaterialTheme.colorScheme.surface) {
     val isIncoming = expense.amount > 0
     val amountColor = if (isIncoming) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
-    val numberFormat = NumberFormat.getNumberInstance(Locale("vi", "VN")) // Định dạng số Việt Nam
+    val numberFormat = NumberFormat.getNumberInstance(Locale("vi", "VN"))
 
     val formattedAmount = try {
         val amount = kotlin.math.abs(expense.amount)
@@ -236,7 +263,7 @@ fun TransactionItem(expense: ExpenseItem, onDelete: (ExpenseItem) -> Unit, backg
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         colors = CardDefaults.cardColors(
-            containerColor = backgroundColor // Sử dụng màu nền được truyền vào
+            containerColor = backgroundColor
         )
     ) {
         Row(

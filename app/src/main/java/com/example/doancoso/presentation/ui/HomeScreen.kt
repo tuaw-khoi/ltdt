@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.AddBox
 import androidx.compose.material.icons.filled.Create // Ví dụ: Icon bút chì cho thêm mới
 import androidx.compose.material.icons.filled.NoteAdd // Một ví dụ khác: Icon thêm ghi chú
 import androidx.compose.material.icons.filled.PlaylistAdd // Thêm vào danh sách
+import androidx.compose.material.icons.filled.Notifications
 
 fun generateColorForCategory(category: String): Color {
     val random = Random(category.hashCode().toLong())
@@ -412,15 +413,15 @@ fun BottomNavBar(navController: NavHostController) {
         NavigationBarItem(
             icon = {
                 Icon(
-                    Icons.Default.Chat,
-                    contentDescription = "wallet",
-                    tint = if (selectedItem.value == "wallet") Color.White else Color.White.copy(alpha = 0.7f)
+                    Icons.Default.Notifications,
+                    contentDescription = "Notifications",
+                    tint = if (selectedItem.value == "notifications") Color.White else Color.White.copy(alpha = 0.7f)
                 )
             },
-            selected = selectedItem.value == "wallet",
+            selected = selectedItem.value == "notifications",
             onClick = {
-                selectedItem.value = "wallet"
-                navController.navigate("wallet")
+                selectedItem.value = "notifications"
+                navController.navigate("notifications")
             }
         )
         NavigationBarItem(
