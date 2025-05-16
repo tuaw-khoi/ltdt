@@ -241,47 +241,28 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
                 }
 
                 coroutineScope.launch {
-//                    try {
-//                        val newAvatarUrl = if (selectedImageUri != null) {
-//                            val file = imgService().getFileFromUri(context, selectedImageUri!!)
-//                            if (file != null) {
-//                                imgService().uploadAvatarToCloudinary(file) { url ->
-//                                    url?.let {
-//                                        // Update user with new avatar
-//                                        val updateResult = authService.updateUser(
-//                                            uid, userName, email, phone, gender, address, it
-//                                        )
-//                                        if (updateResult) {
-//                                            navController.popBackStack()
-//                                        } else {
-//                                            Toast.makeText(context, "Lỗi khi cập nhật thông tin", Toast.LENGTH_SHORT).show()
-//                                        }
-//                                    } ?: run {
-//                                        Toast.makeText(context, "Lỗi khi tải ảnh lên", Toast.LENGTH_SHORT).show()
-//                                    }
-//                                }
-//                                return@launch
-//                            } else {
-//                                Toast.makeText(context, "Không thể xử lý ảnh", Toast.LENGTH_SHORT).show()
-//                                return@launch
-//                            }
-//                        } else {
-//                            avatarUrl // Keep existing avatar if no new one selected
-//                        }
-//
-//                        // If no new image was selected, just update other fields
-//                        val updateResult = authService.updateUser(
-//                            uid, userName, email, phone, gender, address, newAvatarUrl
-//                        )
-//                        if (updateResult) {
-//                            navController.popBackStack()
-//                        } else {
-//                            Toast.makeText(context, "Lỗi khi cập nhật thông tin", Toast.LENGTH_SHORT).show()
-//                        }
-//                    } catch (e: Exception) {
-//                        Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
-//                        Log.e("EditProfile", "Error updating profile", e)
-//                    }
+                    try {
+                        val newAvatarUrl = if (selectedImageUri != null) {
+                            // Giả sử bạn có được URL ảnh đã chọn bằng cách khác
+                            // Nếu chưa có backend hoặc dịch vụ upload, bạn có thể dùng local uri string tạm
+                            selectedImageUri.toString()
+                        } else {
+                            avatarUrl
+                        }
+
+                        val updateResult = authService.updateUser(
+                            uid, userName, email, phone, gender, address, newAvatarUrl
+                        )
+                        if (updateResult) {
+                            navController.popBackStack()
+                        } else {
+                            Toast.makeText(context, "Lỗi khi cập nhật thông tin", Toast.LENGTH_SHORT).show()
+                        }
+
+                    } catch (e: Exception) {
+                        Toast.makeText(context, "Lỗi: ${e.message}", Toast.LENGTH_SHORT).show()
+                        Log.e("EditProfile", "Error updating profile", e)
+                    }
                 }
             },
             modifier = Modifier
@@ -295,5 +276,6 @@ fun EditProfile(navController: NavHostController, uid: String, authService: Auth
             Spacer(modifier = Modifier.width(8.dp))
             Text("Lưu thay đổi", color = Color.White)
         }
-}
+
+    }
     }

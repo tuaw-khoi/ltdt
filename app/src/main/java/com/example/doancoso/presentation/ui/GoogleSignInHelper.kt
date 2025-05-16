@@ -72,8 +72,6 @@ class GoogleSignInHelper(
                     if (success) {
                         // Điều hướng đến màn hình chính sau khi đăng nhập thành công
                         navController.navigate("home") {
-                            popUpTo(navController.graph.startDestinationId)
-                            launchSingleTop = true
 
                         }
                     } else {

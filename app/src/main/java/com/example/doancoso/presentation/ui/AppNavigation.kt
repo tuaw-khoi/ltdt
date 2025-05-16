@@ -89,13 +89,14 @@ fun AppNavigation(
             WelcomeScreen(navController = navController)
         }
         composable(Screen.Login.route) {
-            LoginScreen(navController, authService, signIn = signIn)
+            LoginScreen(navController = navController, authService=authService
+                , signIn = signIn)
         }
         composable(Screen.Signup.route) {
             SignupScreen(navController, authService)
         }
         composable(Screen.Home.route) {
-            HomeScreen(navController, authService)
+            HomeScreen(navController)
         }
         composable(Screen.AddItems.route) {
             AddItemsScreen(
