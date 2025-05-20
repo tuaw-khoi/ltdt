@@ -42,25 +42,48 @@ android {
 }
 
 dependencies {
+    implementation("com.google.firebase:firebase-bom:32.3.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.6.8")
+    implementation ("androidx.compose.material3:material3:1.1.0")
+    implementation ("androidx.compose.material:material-icons-extended:1.5.0")
 
-//    implementation("com.google.firebase:firebase-bom:32.3.0")
+    implementation("com.google.android.gms:play-services-mlkit-text-recognition:19.0.1")
 
+
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+    implementation("io.coil-kt:coil-compose:2.2.2")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.0")
+
+    implementation("com.cloudinary:cloudinary-android:2.3.1")
+    implementation ("com.cloudinary:cloudinary-android:1.30.0")
+    implementation ("com.squareup.okhttp3:okhttp:4.11.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
+    implementation ("com.google.firebase:firebase-auth-ktx:22.1.2")
+    implementation ("com.google.firebase:firebase-database-ktx:20.3.0")
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
     implementation(libs.androidx.ui)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.firebase.auth.ktx)
-    implementation(libs.firebase.auth)
-    implementation(libs.firebase.database)
+
     implementation(libs.firebase.crashlytics.buildtools)
     implementation(libs.firebase.firestore.ktx)
+    implementation(libs.androidx.espresso.core)
+    implementation(libs.androidx.animation.core.lint)
+    implementation(libs.generativeai)
+    implementation(libs.androidx.webkit)
+    implementation(libs.vision.common)
+    implementation(libs.play.services.mlkit.text.recognition.common)
+    implementation(libs.play.services.mlkit.text.recognition)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -68,4 +91,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.material3)
+    implementation("androidx.compose.material3:material3:1.2.1")
+    implementation ("com.cloudinary:cloudinary-android:2.3.1")
+    implementation ("com.squareup.okhttp3:okhttp:4.9.3")
+
 }
